@@ -1,25 +1,22 @@
-/*
- * Copyright 2016 - 2025 gnuwimp@gmail.com
- * Released under the GNU General Public License v3.0
- */
+package gnuwimp.audioconverter.merge1
 
-package gnuwimp.audioconverter
-
+import gnuwimp.audioconverter.*
 import gnuwimp.swing.Swing
 import gnuwimp.util.*
+import gnuwimp.util.Task
 import java.io.InputStream
 import java.io.OutputStream
 
 //------------------------------------------------------------------------------
-class Tab1Task(val parameters: Tab1Parameters) : Task(max = parameters.audioFiles.sumByLong(FileInfo::size)) {
+class Task(val parameters: Parameters) : Task(max = parameters.audioFiles.sumByLong(FileInfo::size)) {
     //--------------------------------------------------------------------------
     override fun run() {
-        var decoderBuilder: ProcessBuilder? = null
+        var decoderBuilder: ProcessBuilder?
         var decoderProcess: Process?        = null
-        var decoderStream: InputStream?     = null
-        var encoderBuilder: ProcessBuilder? = null
+        var decoderStream:  InputStream?    = null
+        var encoderBuilder: ProcessBuilder?
         var encoderProcess: Process?        = null
-        var encoderStream: OutputStream?    = null
+        var encoderStream:  OutputStream?   = null
         var wavHeader                       = WavHeader()
         var exception                       = ""
 
@@ -42,11 +39,13 @@ class Tab1Task(val parameters: Tab1Parameters) : Task(max = parameters.audioFile
                     val read = decoderStream.read(buffer)
 
                     if (read > 0) {
-                        ConvertManager.add(read.toLong())
+                        ConvertManager.Companion.add(read.toLong())
 
                         if (encoderProcess == null) {
+                            parameters.outputFile.remove()
+
                             wavHeader         = WavHeader(buffer, read)
-                            val encoderParams = Encoders.createEncoder(parameters, wavHeader)
+                            val encoderParams = Encoders.Companion.createEncoder(parameters.encoder, wavHeader, parameters.outputFile.filename)
                             Swing.logMessage  = encoderParams.joinToString(separator = " ")
                             encoderBuilder    = ProcessBuilder(encoderParams)
                             encoderProcess    = encoderBuilder.start()

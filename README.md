@@ -2,16 +2,31 @@
 
 ## About
 AudioConverter converts audio and video files of different formats.  
-It uses lame/oggenc/ffmpeg to encode and decode the files.  
+It uses lame/oggenc/qaac64/faac/flac to encode the files.  
+And ffmpeg for decoding.  
 AudioConverter is  written in [kotlin](https://kotlinlang.org) and released under the [GNU General Public License v3.0](LICENSE).  
 
-## Convert to a single file
-Convert a directory of files (typical an audio book) to a single file.  
+## Merge a directory of files
+Convert a directory of files to a single file.  
 All input files must have the same samplerate and number of channels (stereo/mono) and bitwidth.  
+Tags can be set manually or copied from the first input file.  
+Can run automatically from command line.  
 
-## Convert file by file
-It will convert all files in a directory tree.  
-And it will also try to read and copy tags from the source files.  
+## Merge a selection of files to a single file
+Convert selected files to a single file.  
+All input files must have the same samplerate and number of channels (stereo/mono) and bitwidth.  
+Tags can be set manually or copied from the first input file.  
+
+## Convert a directory tree of files
+Convert all files in a directory tree.  
+Tags will be copied from source to destination.  
+Can use up to 128 threads.  
+Can run automatically from command line.  
+
+## Convert a selection of files
+Convert all selected files.  
+Tags will be copied from source to destination.  
+Can use up to 128 threads.  
 
 ## Download
 Download AudioConverter from [here](https://github.com/gnuwimp/AudioConverter/releases).  
@@ -20,6 +35,12 @@ Install [ffmpeg](https://www.ffmpeg.org) to decode flac/wav/ogg/m4a/avi/mp4/mkv 
 Install [Lame](https://lame.sourceforge.io) to encode mp3 files.  
 Install [oggenc](https://www.xiph.org/ogg) to encode ogg files.  
 Install [qaac64](https://github.com/nu774/qaac/releases) to encode aac files (Windows + iTunes are needed).  
+Install [faac](https://github.com/knik0/faac) to encode aac files (lower quality than qaac64/iTunes).  
+Install [flac](https://github.com/xiph/flac) to encode flac files.  
+
+It is possible to use qaac64.exe in linux if wine is installed.  
+Copy qaac64.exe + needed dlls from iTunes to ~/.wine/drive_c/windows (hardcoded in AudioConverter).  
+** Version 2.84 (and probably later versions) does NOT work due to changes how it reads data.**  
 
 ## Usage
 Double-click AudioConverter.jar file on windows to start the program.  
@@ -29,10 +50,12 @@ AudioConverter has been tested on Windows 10 and Ubuntu 24.10.
 ## Screenshots
 <img src="images/audioconverter.png"/><br>
 <img src="images/audioconverter-2.png"/>
+<img src="images/audioconverter-3.png"/>
+<img src="images/audioconverter-4.png"/>
 
 ## Command Line Arguments  
-To convert files to a single file use these arguments, (use only ascii characters on Windows).  
-And use "" around text and paths with spaces.  
+To merge a directory of files from the command line use these arguments.  
+Use "" around text and paths with spaces.  
 <pre>
 --src  [PATH]              source directory with audio files
 --dest [PATH]              destination directory for target file
@@ -67,18 +90,23 @@ And use "" around text and paths with spaces.
                              16 = Ogg ~256 Kbps
                              17 = Ogg ~320 Kbps
                              18 = Ogg ~500 Kbps
-                             19 = AAC HE/CBR 48 Kbps
-                             20 = AAC HE/CBR 80 Kbps
-                             21 = AAC CVBR ~96 Kbps
-                             22 = AAC TVBR63 ~128 Kbps
-                             23 = AAC TVBR109 ~256 Kbps
-                             24 = AAC TVBR127 ~320 Kbps
-                             25 = AAC ALAC
+                             19 = Q-AAC HE/CBR 48 Kbps
+                             20 = Q-AAC HE/CBR 80 Kbps
+                             21 = Q-AAC CVBR ~96 Kbps
+                             22 = Q-AAC TVBR63 ~128 Kbps
+                             23 = Q-AAC TVBR109 ~256 Kbps
+                             24 = Q-AAC TVBR127 ~320 Kbps
+                             25 = Q-AAC ALAC
+                             26 = F-AAC ABR ~64 Kbps
+                             27 = F-AAC ABR ~128 Kbps
+                             28 = F-AAC ABR ~256 Kbps
+                             29 = F-AAC ABR ~320 Kbps
+                             30 = FLAC
 --auto                     start automatically and quit after successful encoding (optional)
 --auto2                    start automatically and quit even for error (optional)
 </pre>
 
-To convert file to file use these arguments:
+To convert directories from the command line use these arguments:
 <pre>
 --mode2                    set this mode
 --src [PATH]               start directory with audio files
@@ -94,6 +122,12 @@ To convert file to file use these arguments:
 
 ## Changes
 <pre>
+3.0:    added conversion for a selection of files
+        added faac encoder
+        added flac encoder
+        possible to use qaac64 in linux (version 2.83)
+        bug fixes and improvements
+
 2.6.1:  minor bug fixes and improvements
 
 2.6:    added overwrite destination files option

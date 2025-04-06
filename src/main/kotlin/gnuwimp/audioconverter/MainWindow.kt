@@ -19,8 +19,10 @@ import kotlin.system.exitProcess
 class MainWindow : JFrame(Constants.APP_NAME) {
     private val main        = LayoutPanel(size = Swing.defFont.size / 2)
     val         tabs        = JTabbedPane()
-    val         tab1        = Tab1()
-    val         tab2        = Tab2()
+    val         tab1        = gnuwimp.audioconverter.merge1.Panel()
+    val         tab2        = gnuwimp.audioconverter.merge2.Panel()
+    val         tab3        = gnuwimp.audioconverter.convert1.Panel()
+    val         tab4        = gnuwimp.audioconverter.convert2.Panel()
     private val quitButton  = JButton("Quit")
     private val aboutButton = JButton("About")
     private val logButton   = JButton("Show Log")
@@ -33,13 +35,18 @@ class MainWindow : JFrame(Constants.APP_NAME) {
         tabs.border = BorderFactory.createEmptyBorder(4, 4, 0, 4)
         tab1.border = BorderFactory.createEtchedBorder()
         tab2.border = BorderFactory.createEtchedBorder()
+        tab3.border = BorderFactory.createEtchedBorder()
+        tab4.border = BorderFactory.createEtchedBorder()
 
-        tabs.addTab(Constants.TAB1_LABEL, null, tab1, Constants.TAB1_TOOLTIP)
-        tabs.addTab(Constants.TAB2_LABEL, null, tab2, Constants.TAB2_TOOLTIP)
-        main.add(tabs, 0, 0, 0, -6)
-        main.add(quitButton, x = -21, y = -5, w = 20, h = 4)
+        tabs.addTab("Merge (directory)", null, tab1, "Merge a directory of audio/video files into one audio file.")
+        tabs.addTab("Merge (files)", null, tab2, "Merge selected audio/video files into one audio file.")
+        tabs.addTab("Convert (directory)", null, tab3, "Convert all files in a directory tree.")
+        tabs.addTab("Convert (files)", null, tab4, "Convert selected audio/video files.")
+
+        main.add(tabs,        x = 0,   y = 0,  w = 0,  h = -6)
+        main.add(quitButton,  x = -21, y = -5, w = 20, h = 4)
         main.add(aboutButton, x = -42, y = -5, w = 20, h = 4)
-        main.add(logButton, x = -63, y = -5, w = 20, h = 4)
+        main.add(logButton,   x = -63, y = -5, w = 20, h = 4)
 
         logButton.toolTipText = Constants.LOGBUTTON_TOOLTIP
 

@@ -3,6 +3,8 @@
  * Released under the GNU General Public License v3.0
  */
 
+@file:Suppress("SameReturnValue")
+
 package gnuwimp.swing
 
 import java.awt.Color

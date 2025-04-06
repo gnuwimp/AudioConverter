@@ -18,25 +18,3 @@ object Decoder {
         }
     }
 }
-
-//--------------------------------------------------------------------------
-val FileInfo.isAudioFile: Boolean
-    get() {
-        if (file.isFile == false) {
-            return false
-        }
-
-        return when(ext.lowercase()) {
-            "mp3"-> true
-            "aac" -> true
-            "m4a" -> true
-            "m4b" -> true
-            "flac" -> true
-            "ogg" -> true
-            "wav" -> true
-            "avi" -> true
-            "mkv" -> true
-            "mp4" -> true
-            else -> false
-        }
-    }

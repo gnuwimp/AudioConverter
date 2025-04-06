@@ -9,7 +9,6 @@ import java.awt.Point
 import java.awt.Toolkit
 import javax.swing.JDialog
 import javax.swing.JFrame
-import javax.swing.WindowConstants
 
 /**
  * Base dialog window.
@@ -17,7 +16,7 @@ import javax.swing.WindowConstants
  */
 abstract class BaseDialog(val parent: JFrame?, title: String, modal: Boolean) : JDialog(parent, title, modal) {
     init {
-         defaultCloseOperation = WindowConstants.DO_NOTHING_ON_CLOSE
+         defaultCloseOperation = DO_NOTHING_ON_CLOSE
     }
 
     /**

@@ -3,14 +3,15 @@
  * Released under the GNU General Public License v3.0
  */
 
-package gnuwimp.audioconverter
+package gnuwimp.audioconverter.convert1
 
-import gnuwimp.audioconverter.Constants.Overwrite
+import gnuwimp.audioconverter.Constants
+import gnuwimp.audioconverter.Encoders
 import gnuwimp.util.FileInfo
 import java.io.File
 
 //------------------------------------------------------------------------------
-class Tab2Parameters(val source: String, val dest: String, val encoder: Encoders, val threads: Int, val overwrite: Overwrite) {
+class Parameters(val source: String, val dest: String, val encoder: Encoders, val threads: Int, val overwrite: Constants.Overwrite) {
     var inputFiles: List<FileInfo> = listOf()
     var outputFiles: MutableList<FileInfo> = mutableListOf()
 
@@ -33,11 +34,5 @@ class Tab2Parameters(val source: String, val dest: String, val encoder: Encoders
             dc.indexOf(sc) == 0 -> throw Exception("error: keep source and destination directories separate")
             threads < 0 || threads > 128 -> throw Exception("error: invalid thread value")
         }
-
-        Main.pref.tab2SourcePath = source
-        Main.pref.tab2DestPath   = dest
     }
-
-    //--------------------------------------------------------------------------
-    override fun toString(): String = "start=$source, dest=$dest, enocder=$encoder"
 }

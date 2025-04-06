@@ -3,28 +3,28 @@
  * Released under the GNU General Public License v3.0
  */
 
-package gnuwimp.audioconverter
+package gnuwimp.audioconverter.convert1
 
+import gnuwimp.audioconverter.*
 import gnuwimp.swing.Swing
 import gnuwimp.util.FileInfo
 import gnuwimp.util.Task
 import gnuwimp.util.safeClose
 import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.tag.FieldKey
-import org.jaudiotagger.tag.Tag
 import java.io.InputStream
 import java.io.OutputStream
 
 //------------------------------------------------------------------------------
-class Tab2Task(private val inputFile: FileInfo, private val outputFile: FileInfo, private val parameters: Tab2Parameters) : Task(inputFile.size) {
+class Task(private val inputFile: FileInfo, private val outputFile: FileInfo, private val encoder: Encoders) : Task(inputFile.size) {
     //--------------------------------------------------------------------------
     override fun run() {
-        var decoderBuilder: ProcessBuilder? = null
+        var decoderBuilder: ProcessBuilder?
         var decoderProcess: Process?        = null
-        var decoderStream: InputStream?     = null
-        var encoderBuilder: ProcessBuilder? = null
+        var decoderStream:  InputStream?    = null
+        var encoderBuilder: ProcessBuilder?
         var encoderProcess: Process?        = null
-        var encoderStream: OutputStream?    = null
+        var encoderStream:  OutputStream?   = null
         var exception                       = ""
 
         try {
@@ -43,8 +43,10 @@ class Tab2Task(private val inputFile: FileInfo, private val outputFile: FileInfo
 
                 if (read > 0) {
                     if (encoderStream == null) {
+                        outputFile.remove()
+
                         val wavHeader     = WavHeader(buffer, read)
-                        val encoderParams = Encoders.createEncoder(parameters, wavHeader, outputFile)
+                        val encoderParams = Encoders.Companion.createEncoder(encoder, wavHeader, outputFile.filename)
                         Swing.logMessage  = encoderParams.joinToString(separator = " ")
 
                         encoderBuilder = ProcessBuilder(encoderParams)
@@ -57,7 +59,7 @@ class Tab2Task(private val inputFile: FileInfo, private val outputFile: FileInfo
                         encoderStream.write(buffer, 0, read)
                     }
 
-                    ConvertManager.add(read.toLong())
+                    ConvertManager.Companion.add(read.toLong())
                 }
 
                 if (abort == true) {
@@ -118,7 +120,7 @@ class Tab2Task(private val inputFile: FileInfo, private val outputFile: FileInfo
                         toTag.copyField(FieldKey.TRACK, fromTag)
                         toTag.copyField(FieldKey.TRACK_TOTAL, fromTag)
                         toTag.copyField(FieldKey.YEAR, fromTag)
-                        toTag.setField(FieldKey.ENCODER, parameters.encoder.executable)
+                        toTag.setField(FieldKey.ENCODER, encoder.executable)
                         toTag.copyArtwork(fromTag)
 
                         toFile.tag = toTag
@@ -133,32 +135,3 @@ class Tab2Task(private val inputFile: FileInfo, private val outputFile: FileInfo
     }
 }
 
-//------------------------------------------------------------------------------
-private fun Tag.copyArtwork(from: Tag) {
-    try {
-        val cover = from.firstArtwork
-
-        if (cover != null) {
-            addField(cover)
-        }
-    }
-    catch (e: Exception) {
-    }
-}
-
-//------------------------------------------------------------------------------
-private fun Tag.copyField(field: FieldKey, from: Tag) {
-    var value = ""
-
-    try {
-        value = from.getFirst(field)
-    }
-    catch (e: Exception) {
-    }
-
-    try {
-        setField(field, value)
-    }
-    catch (e: Exception) {
-    }
-}

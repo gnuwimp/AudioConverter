@@ -57,16 +57,18 @@ object Main {
                 window.prefLoad()
                 window.isVisible = true
 
-                val tabs2 = args.find("--mode2") != -1
+                val tabs3 = args.find("--mode2") != -1
 
-                if (tabs2 == true && window.tab2.argLoad(args) == true) {
-                    window.tabs.selectedIndex = 1
+                if (tabs3 == true && window.tab3.argLoad(args) == true) {
+                    window.tabs.selectedIndex = 2
 
-                    if (window.tab2.auto != Constants.Auto.NO) {
-                        window.tab2.run()
+                    if (window.tab3.auto != Constants.Auto.NO) {
+                        window.tab3.run()
                     }
                 }
-                else if (tabs2 == false && window.tab1.argLoad(args) == true) {
+                else if (tabs3 == false && window.tab1.argLoad(args) == true) {
+                    window.tabs.selectedIndex = 0
+
                     if (window.tab1.auto != Constants.Auto.NO) {
                         window.tab1.run()
                     }

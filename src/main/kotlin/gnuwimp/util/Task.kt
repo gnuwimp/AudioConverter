@@ -35,6 +35,7 @@ class TaskThread(val task: Task) : Thread() {
  * It will be executed in a thread
  * Max valuse has to be larger than 0
  */
+@Suppress("EmptyMethod")
 abstract class Task(val max: Long = 100) {
     private var messageString = ""
 

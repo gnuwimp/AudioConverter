@@ -42,6 +42,7 @@ class ComboBox<T>(var strings: List<String>, index: Int = 0, val callback: ((Str
      * Add strings to data model for combobox
      */
     fun setStrings(strings: List<String>, selected: Int = 0) {
+        val current = text
         val myModel = javax.swing.DefaultComboBoxModel<String>()
 
         for (string in strings) {
@@ -53,13 +54,16 @@ class ComboBox<T>(var strings: List<String>, index: Int = 0, val callback: ((Str
         if (selected in 0 until itemCount) {
             selectedIndex = selected
         }
+        else {
+            text = current
+        }
     }
 
     /**
      * Set or get text from combobox.
      */
     var text: String
-        get() = if (isEditable) editor.item.toString() else strings[selectedIndex]
+        get() = if (isEditable) editor.item.toString() else if (selectedIndex in 0 until itemCount) strings[selectedIndex] else ""
 
         set(value) {
             editor.item = value

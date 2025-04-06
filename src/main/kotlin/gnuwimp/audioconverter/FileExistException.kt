@@ -8,6 +8,5 @@ package gnuwimp.audioconverter
 //------------------------------------------------------------------------------
 class FileExistException : Exception {
     //--------------------------------------------------------------------------
-    constructor(message: String) : super(message) {
-    }
+    constructor(message: String) : super(message)
 }

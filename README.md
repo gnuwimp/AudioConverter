@@ -40,7 +40,8 @@ Install [flac](https://github.com/xiph/flac) to encode flac files.
 
 It is possible to use qaac64.exe in linux if wine is installed.  
 Copy qaac64.exe + needed dlls from iTunes to ~/.wine/drive_c/windows (hardcoded in AudioConverter).  
-** Version 2.84 (and probably later versions) does NOT work due to changes how it reads data.**  
+
+**Qaac64** version 2.84 does **NOT** work due to changes how it reads data. Use version 2.83.  
 
 ## Usage
 Double-click AudioConverter.jar file on windows to start the program.  

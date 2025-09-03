@@ -1,8 +1,5 @@
-package gnuwimp.audioconverter.merge1
+package gnuwimp.audioconverter
 
-import gnuwimp.audioconverter.Constants
-import gnuwimp.audioconverter.Encoders
-import gnuwimp.audioconverter.FileExistException
 import gnuwimp.util.FileInfo
 import gnuwimp.util.isImage
 import gnuwimp.util.numOrZero
@@ -11,38 +8,55 @@ import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.images.Artwork
 import java.io.File
 
-//------------------------------------------------------------------------------
-class Parameters(val audioFiles: List<FileInfo>, val dest: String, val cover: String, var artist: String, var album: String, var year: String, val comment: String, var genre: String, val encoder: Encoders, val gap: String, val mono: Boolean, val overwrite: Constants.Overwrite) {
+/***
+ *      __  __                     _____
+ *     |  \/  |                   |  __ \
+ *     | \  / | ___ _ __ __ _  ___| |__) |_ _ _ __ __ _ _ __ ___  ___
+ *     | |\/| |/ _ \ '__/ _` |/ _ \  ___/ _` | '__/ _` | '_ ` _ \/ __|
+ *     | |  | |  __/ | | (_| |  __/ |  | (_| | | | (_| | | | | | \__ \
+ *     |_|  |_|\___|_|  \__, |\___|_|   \__,_|_|  \__,_|_| |_| |_|___/
+ *                       __/ |
+ *                      |___/
+ */
+
+/**
+ * Parameters for transcoding many files into one.
+ */
+class MergeParams(val audioFiles: List<FileInfo>, val dest: String, val cover: String, var artist: String, var album: String, var year: String, val comment: String, var genre: String, val encoder: Encoders, val gap: String, val mono: Boolean, val overwrite: Constants.Overwrite) {
     var image: Artwork? = null
 
+    /**
+     *
+     */
     companion object {
         const val DEFAULT_GENRE = "Audiobook"
     }
 
-    //--------------------------------------------------------------------------
+    /**
+     *
+     */
     val outputFile: FileInfo
         get() = FileInfo(outputFileName)
 
-    //--------------------------------------------------------------------------
+    /**
+     *
+     */
     val outputFileName: String
         get() {
-            val name = FileInfo.Companion.safeName("$artist - $album")
+            val name = FileInfo.safeName("$artist - $album")
             val tmp  = if (dest.endsWith(File.separator) == true) dest else dest + File.separator
 
-            return if (year != "") {
-                return "$tmp$name ($year).${encoder.fileExt}"
-            }
-            else {
-                return "$tmp$name.${encoder.fileExt}"
-            }
+            return "$tmp$name ($year).${encoder.fileExt}"
         }
 
-    //--------------------------------------------------------------------------
+    /**
+     *
+     */
     fun validate() {
         val d = FileInfo(dest)
 
         if (d.isDir == false && d.file.mkdirs() == false) {
-            throw Exception("error: missing destination directory => '$dest'")
+            throw Exception("Error: missing destination directory => '$dest'")
         }
 
         try {
@@ -77,16 +91,16 @@ class Parameters(val audioFiles: List<FileInfo>, val dest: String, val cover: St
         }
 
         when {
-            cover.isNotBlank() && File(cover).isImage == false -> throw Exception("error: image cover file is not an valid image")
-            artist.isBlank() -> throw Exception("error: artist/author string is empty")
-            album.isBlank() -> throw Exception("error: title string is empty")
-            year != "" && (year.numOrZero < 1 || year.numOrZero > 9999) -> throw Exception("error: year is out of range $year (1 - 9999)")
+            cover.isNotBlank() && File(cover).isImage == false -> throw Exception("Error: image cover file is not an valid image")
+            artist.isBlank() -> throw Exception("Error: artist/author string is empty")
+            album.isBlank() -> throw Exception("Error: title string is empty")
+            year != "" && (year.numOrZero !in 1..9999) -> throw Exception("Error: year is out of range $year (1 - 9999)")
         }
 
         val out_file = FileInfo(outputFileName)
 
         if (overwrite == Constants.Overwrite.NO && out_file.isFile == true) {
-            throw Exception("error: destination file '${out_file.filename}' exist!")
+            throw Exception("Error: destination file exist!\n${out_file.filename}")
         }
 
         if (overwrite == Constants.Overwrite.OLDER) {
@@ -99,7 +113,7 @@ class Parameters(val audioFiles: List<FileInfo>, val dest: String, val cover: St
             }
 
             if (count == 0) {
-                throw FileExistException("error: destination file '${out_file.filename}' is newer than the input files!")
+                throw FileExistException("Error: destination file is newer than the input files!\n${out_file.filename}")
             }
         }
     }

@@ -11,6 +11,17 @@ import java.util.*
 import kotlin.math.abs
 
 /**
+ *      _____              _     _
+ *     |  __ \            | |   | |
+ *     | |  | | ___  _   _| |__ | | ___
+ *     | |  | |/ _ \| | | | '_ \| |/ _ \
+ *     | |__| | (_) | |_| | |_) | |  __/
+ *     |_____/ \___/ \__,_|_.__/|_|\___|
+ *
+ *
+ */
+
+/**
  * Convert double number to string with thousandSeperator for every thousand but not for the decimals
  */
 fun Double.format(thousandSeperator: String, numDecimals: Int, stringWidth: Int = 0): String {
@@ -36,6 +47,17 @@ fun Double.format(thousandSeperator: String, numDecimals: Int, stringWidth: Int 
 }
 
 /**
+ *      _____       _
+ *     |_   _|     | |
+ *       | |  _ __ | |_
+ *       | | | '_ \| __|
+ *      _| |_| | | | |_
+ *     |_____|_| |_|\__|
+ *
+ *
+ */
+
+/**
  * Convert integer to byte array
  */
 fun Int.toByteArray(littleEndian: Boolean = true): ByteArray {
@@ -51,6 +73,17 @@ fun Int.toByteArray(littleEndian: Boolean = true): ByteArray {
     bf.putInt(this)
     return bf.array()
 }
+
+/**
+ *      _
+ *     | |
+ *     | |     ___  _ __   __ _
+ *     | |    / _ \| '_ \ / _` |
+ *     | |___| (_) | | | | (_| |
+ *     |______\___/|_| |_|\__, |
+ *                         __/ |
+ *                        |___/
+ */
 
 /**
  * Convert integer to string with thousandSeperator for every thousand

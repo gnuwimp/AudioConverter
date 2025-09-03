@@ -17,6 +17,17 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 
+/***
+ *      ______ _ _      _____        __
+ *     |  ____(_) |    |_   _|      / _|
+ *     | |__   _| | ___  | |  _ __ | |_ ___
+ *     |  __| | | |/ _ \ | | | '_ \|  _/ _ \
+ *     | |    | | |  __/_| |_| | | | || (_) |
+ *     |_|    |_|_|\___|_____|_| |_|_| \___/
+ *
+ *
+ */
+
 /**
  * A file information object.
  * Create an object with filename, and it will load all stat from the file.
@@ -248,6 +259,26 @@ class FileInfo(pathname: String) {
     }
 
     /**
+     * Read files in this directory.
+     */
+    fun readDirFile(option: ReadDirOption = ReadDirOption.FILES_AND_DIRS): Array<File?> {
+        val files = readDir(option)
+        val res   = Array<File?>(files.size) { null }
+        var count = 0
+
+        files.forEach {
+            try {
+                res[count] = it.file
+                count++
+            }
+            catch (_: Exception) {
+            }
+        }
+
+        return res
+    }
+
+    /**
      * Remove a file or directory (with option to do delete all child files/directories).
      */
     fun remove(recursive: Boolean = false, checkExist: Boolean = true): Boolean {
@@ -372,12 +403,14 @@ class FileInfo(pathname: String) {
             return res
         }
 
-        //----------------------------------------------------------------------
+        /**
+         * Extract date and time from string.
+         */
         private fun extractDate(date: String): String {
             var res = ""
 
             if (date.length > 9) {
-                res += date.substring(0, 10)
+                res += date.take(10)
                 res += " "
             }
 
@@ -396,7 +429,9 @@ class FileInfo(pathname: String) {
          * Callback for file visitor.
          */
         class FileVisitor(val path: Path, val files: MutableList<FileInfo>, val option: ReadDirOption) : SimpleFileVisitor<Path>() {
-            //------------------------------------------------------------------
+            /**
+             *
+             */
             override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
                 if (path != dir) {
                     val fi = readDirAddFile(files, dir, option)
@@ -414,25 +449,33 @@ class FileInfo(pathname: String) {
                 return super.preVisitDirectory(dir, attrs)
             }
 
-            //------------------------------------------------------------------
+            /**
+             * Add file.
+             */
             override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
                 readDirAddFile(files, file, option)
                 return super.visitFile(file, attrs)
             }
 
-            //------------------------------------------------------------------
-            override fun visitFileFailed(file: Path?, exc: IOException): FileVisitResult {
+            /**
+             *
+             */
+            override fun visitFileFailed(file: Path, exc: IOException): FileVisitResult {
                 readDirAddFile(files, file, option)
                 return FileVisitResult.SKIP_SUBTREE
             }
 
-            //------------------------------------------------------------------
+            /**
+             *
+             */
             override fun postVisitDirectory(dir: Path, exc: IOException?): FileVisitResult {
                 return super.postVisitDirectory(dir, exc)
             }
         }
 
-        //----------------------------------------------------------------------
+        /**
+         * Read files and directories.
+         */
         private fun readDir(files: MutableList<FileInfo>, path: Path, option: ReadDirOption) {
             val visitor  = FileVisitor(path, files, option)
             val set      = mutableSetOf<FileVisitOption>()
@@ -445,7 +488,9 @@ class FileInfo(pathname: String) {
             Files.walkFileTree(path, set, maxDepth, visitor)
         }
 
-        //----------------------------------------------------------------------
+        /**
+         * Add file to list.
+         */
         private fun readDirAddFile(files: MutableList<FileInfo>, file: Path?, option: ReadDirOption): FileInfo? {
             return if (file != null) {
                 val fi = FileInfo(file.toString())

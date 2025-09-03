@@ -1,18 +1,28 @@
-package gnuwimp.audioconverter.merge1
+package gnuwimp.audioconverter
 
-import gnuwimp.audioconverter.*
 import gnuwimp.swing.*
 import gnuwimp.util.*
-import gnuwimp.util.Task
 import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.images.StandardArtwork
 import java.io.File
 import javax.swing.*
 
-//------------------------------------------------------------------------------
-@Suppress("UNUSED_VALUE")
-class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
+/***
+ *      __  __                     _____  _      _____                 _
+ *     |  \/  |                   |  __ \(_)    |  __ \               | |
+ *     | \  / | ___ _ __ __ _  ___| |  | |_ _ __| |__) |_ _ _ __   ___| |
+ *     | |\/| |/ _ \ '__/ _` |/ _ \ |  | | | '__|  ___/ _` | '_ \ / _ \ |
+ *     | |  | |  __/ | | (_| |  __/ |__| | | |  | |  | (_| | | | |  __/ |
+ *     |_|  |_|\___|_|  \__, |\___|_____/|_|_|  |_|   \__,_|_| |_|\___|_|
+ *                       __/ |
+ *                      |___/
+ */
+
+/**
+ * Merge (transcode) a directory of files into one.
+ */
+class MergeDirPanel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
     private val authorInput    = JTextField()
     private val authorLabel    = JLabel("Artist")
     private val channelGroup   = ButtonGroup()
@@ -25,7 +35,7 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
     private val destButton     = JButton("Browse")
     private val destInput      = JTextField()
     private val destLabel      = JLabel("Destination:")
-    private val encoderCombo   = ComboBox<String>(strings = Encoders.Companion.toNames, Encoders.Companion.DEFAULT.encoderIndex)
+    private val encoderCombo   = ComboBox<String>(strings = Encoders.toNames, Encoders.DEFAULT.encoderIndex)
     private val encoderLabel   = JLabel("Encoder:")
     private val gapCombo       = ComboBox<String>(strings = listOf("0", "1", "2", "3", "4", "5"), 0)
     private val gapLabel       = JLabel("Gap:")
@@ -46,7 +56,9 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
     private val yearLabel      = JLabel("Year:")
     var         auto           = Constants.Auto.NO
 
-    //--------------------------------------------------------------------------
+    /**
+     *
+     */
     init {
         val w = 16
 
@@ -113,12 +125,16 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
         imageButton.toolTipText   = imageButton.toolTipText
         sourceButton.toolTipText  = sourceInput.toolTipText
 
-        //----------------------------------------------------------------------
+        /**
+         *
+         */
         convertButton.addActionListener {
             run()
         }
 
-        //----------------------------------------------------------------------
+        /**
+         * Select destination directory.
+         */
         destButton.addActionListener {
             val dialog               = JFileChooser(destInput.text.dir(Main.pref.mergeDestFile))
             dialog.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
@@ -130,12 +146,16 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
             }
         }
 
-        //----------------------------------------------------------------------
+        /**
+         *
+         */
         helpButton.addActionListener {
-            AboutHandler(appName = Constants.HELP, aboutText = Constants.TAB1_HELP).show(parent = Main.window)
+            AboutHandler(appName = Constants.HELP, aboutText = Constants.HELP_MERGE_DIR).show(parent = Main.window)
         }
 
-        //----------------------------------------------------------------------
+        /**
+         * Load cover image.
+         */
         imageButton.addActionListener {
             val dialog = ImageFileDialog(imageInput.text.dir(Main.pref.mergeImageFile).canonicalPath, this)
             val file   = dialog.file
@@ -149,7 +169,9 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
             }
         }
 
-        //----------------------------------------------------------------------
+        /**
+         * Select source directory.
+         */
         sourceButton.addActionListener {
             val dialog = JFileChooser(sourceInput.text.dir(Main.pref.mergeSrcFile))
 
@@ -163,7 +185,9 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
         }
     }
 
-    //--------------------------------------------------------------------------
+    /**
+     * Parse command line arguments.
+     */
     fun argLoad(args: Array<String>): Boolean {
         try {
             val src        = args.findString("--src", "")
@@ -177,7 +201,7 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
             val genre      = args.findString("--genre", "")
             val gap        = args.findInt("--gap", 0).toInt()
             val mono       = args.find("--mono") != -1
-            val encoder    = args.findInt("--encoder", Encoders.Companion.DEFAULT.encoderIndex.toLong()).toInt()
+            val encoder    = args.findInt("--encoder", Encoders.DEFAULT.encoderIndex.toLong()).toInt()
             val overwrite  = args.findString("--overwrite", "0")
             var overwrite2 = overwrite
 
@@ -227,10 +251,10 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
                 channelMono.isSelected = true
             }
 
-            encoderCombo.selectedIndex = Encoders.Companion.toEncoder(encoder).encoderIndex
+            encoderCombo.selectedIndex = Encoders.toEncoder(encoder).encoderIndex
 
             if (gap < 0 || gap >= gapCombo.itemCount) {
-                throw Exception("error: invalid value for --gap ($gap)")
+                throw Exception("Error: invalid value for --gap ($gap)")
             }
             else {
                 gapCombo.selectedIndex = gap
@@ -245,28 +269,30 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
             }
 
             if (overwrite2 != "") {
-                throw Exception("error: invalid value for --overwrite ($overwrite)")
+                throw Exception("Error: invalid value for --overwrite ($overwrite)")
             }
 
             return true
         }
         catch (e: Exception) {
             if (auto == Constants.Auto.YES_QUIT_ON_ERROR) {
-                println(e.message)
+                println(e.message!!)
                 Main.window.quit()
             }
             else {
-                JOptionPane.showMessageDialog(null, e.message, Constants.APP_NAME, JOptionPane.ERROR_MESSAGE)
+                MessageDialog.error(e.message!!)
             }
 
             return false
         }
     }
 
-    //--------------------------------------------------------------------------
+    /**
+     *
+     */
     private fun stage1LoadFiles(): List<FileInfo> {
         if (File(sourceInput.text).isDirectory == false) {
-            Exception("error: missing source directory => '{sourceInput.text}'")
+            Exception("Error: missing source directory => '{sourceInput.text}'")
         }
 
         val files      = FileInfo(sourceInput.text).readDir(FileInfo.ReadDirOption.FILES)
@@ -275,7 +301,7 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
         }
 
         if (audioFiles.isEmpty() == true) {
-            throw Exception("error: no audio/video files in source directory")
+            throw Exception("Error: no audio/video files in source directory")
         }
 
         audioFiles = audioFiles.sortedBy {
@@ -285,9 +311,11 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
         return audioFiles
     }
 
-    //--------------------------------------------------------------------------
-    private fun stage2SetParameters(files: List<FileInfo>) : Parameters {
-        val parameters = Parameters(
+    /**
+     *
+     */
+    private fun stage2SetParameters(files: List<FileInfo>) : MergeParams {
+        val mergeParams = MergeParams(
             audioFiles = files,
             dest       = destInput.text,
             cover      = imageInput.text,
@@ -296,19 +324,21 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
             year       = yearInput.text,
             comment    = commentInput.text,
             genre      = genreInput.text,
-            encoder    = Encoders.Companion.toEncoder(encoderCombo.selectedIndex),
+            encoder    = Encoders.toEncoder(encoderCombo.selectedIndex),
             gap        = gapCombo.text,
             mono       = channelMono.isSelected,
             overwrite  = if (overwriteCombo.selectedIndex == 1) Constants.Overwrite.OLDER else if (overwriteCombo.selectedIndex == 2) Constants.Overwrite.ALL else Constants.Overwrite.NO
         )
 
-        parameters.validate()
-        return parameters
+        mergeParams.validate()
+        return mergeParams
     }
 
-    //--------------------------------------------------------------------------
-    private fun stage3Convert(parameters: Parameters) {
-        val tasks = mutableListOf<Task>(Task(parameters = parameters))
+    /**
+     *
+     */
+    private fun stage3Convert(mergeParams: MergeParams) {
+        val tasks = mutableListOf<Task>(MergeTask(mergeParams = mergeParams))
 
         val progress = ConvertManager(
             tasks      = tasks,
@@ -325,52 +355,55 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
         )
 
         dialog.enableCancel = true
-        ConvertManager.Companion.clear()
+        ConvertManager.clear()
         dialog.start(updateTime = 200L)
         tasks.throwFirstError()
     }
 
-    //--------------------------------------------------------------------------
-    private fun stage4WriteTags(parameters: Parameters) {
+    /**
+     *
+     */
+    private fun stage4WriteTags(mergeParams: MergeParams) {
         try {
-            val track = AudioFileIO.read(parameters.outputFile.file)
+            val track = AudioFileIO.read(mergeParams.outputFile.file)
             val tag   = track.tagOrCreateDefault
 
-            tag.setField(FieldKey.ALBUM, parameters.album)
-            tag.setField(FieldKey.ALBUM_ARTIST, parameters.artist)
-            tag.setField(FieldKey.ARTIST, parameters.artist)
-            tag.setField(FieldKey.COMMENT, parameters.comment)
-            tag.setField(FieldKey.ENCODER, parameters.encoder.executable)
-            tag.setField(FieldKey.GENRE, if (parameters.genre.isBlank() == true) Parameters.Companion.DEFAULT_GENRE else parameters.genre)
-            tag.setField(FieldKey.TITLE, parameters.album)
+            tag.setField(FieldKey.ALBUM, mergeParams.album)
+            tag.setField(FieldKey.ALBUM_ARTIST, mergeParams.artist)
+            tag.setField(FieldKey.ARTIST, mergeParams.artist)
+            tag.setField(FieldKey.COMMENT, mergeParams.comment)
+            tag.setField(FieldKey.ENCODER, mergeParams.encoder.executable)
+            tag.setField(FieldKey.GENRE, if (mergeParams.genre.isBlank() == true) MergeParams.DEFAULT_GENRE else mergeParams.genre)
+            tag.setField(FieldKey.TITLE, mergeParams.album)
             tag.setField(FieldKey.TRACK, "1")
             tag.setField(FieldKey.TRACK_TOTAL, "1")
 
-            if (parameters.year.numOrMinus >= 0) {
-                tag.setField(FieldKey.YEAR, parameters.year)
+            if (mergeParams.year.numOrMinus >= 0) {
+                tag.setField(FieldKey.YEAR, mergeParams.year)
             }
 
-            if (parameters.cover.isNotBlank() == true) {
-                tag.addField(StandardArtwork.createArtworkFromFile(File(parameters.cover)))
+            if (mergeParams.cover.isNotBlank() == true) {
+                tag.addField(StandardArtwork.createArtworkFromFile(File(mergeParams.cover)))
             }
-            else if (parameters.image != null) {
-                tag.addField(parameters.image)
+            else if (mergeParams.image != null) {
+                tag.addField(mergeParams.image)
             }
 
             track.tag = tag
             track.commit()
         }
         catch (e: Exception) {
-            throw Exception("error: failed to write tags to '${parameters.outputFile.name}' -> ${e.message.toString()}")
+            throw Exception("Error: failed to write tags to '${mergeParams.outputFile.name}' -> ${e.message.toString()}")
         }
     }
 
-    //--------------------------------------------------------------------------
+    /**
+     * Run transcoding of files.
+     */
     fun run() {
+        Swing.logMessage    = ""
+        Swing.errorMessage  = ""
         var file: FileInfo? = null
-
-        Swing.logMessage = ""
-        Swing.errorMessage = ""
 
         try {
             val files = stage1LoadFiles()
@@ -381,10 +414,10 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
             stage4WriteTags(parameters)
 
             val message = if (Swing.hasError == true) {
-                "encoding finished successfully with file '${parameters.outputFile.name}' but there are some errors - check the log"
+                "Encoding finished successfully with file:\n'${parameters.outputFile.name}'\nBut there are some errors - check the log!"
             }
             else {
-                "encoding finished successfully with file '${parameters.outputFile.name}'"
+                "Encoding finished successfully with file:\n'${parameters.outputFile.name}'"
             }
 
             Swing.logMessage = message
@@ -393,29 +426,29 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
                 Main.window.quit()
             }
             else {
-                JOptionPane.showMessageDialog(this, message, Constants.APP_NAME, JOptionPane.INFORMATION_MESSAGE)
+                MessageDialog.info(message)
             }
         }
         catch (e: FileExistException) {
             if (auto != Constants.Auto.NO) {
-                println("${e.message}")
+                println(e.message!!)
                 Main.window.quit()
             }
             else {
-                Swing.errorMessage = e.message ?: "!"
-                JOptionPane.showMessageDialog(this, e.message, Constants.APP_NAME, JOptionPane.ERROR_MESSAGE)
+                Swing.errorMessage = e.message!!
+                MessageDialog.error(e.message!!)
             }
         }
         catch (e: Exception) {
             file?.remove()
 
             if (auto == Constants.Auto.YES_QUIT_ON_ERROR) {
-                println("${e.message}")
+                println(e.message!!)
                 Main.window.quit()
             }
             else {
-                Swing.errorMessage = e.message ?: "!"
-                JOptionPane.showMessageDialog(this, e.message, Constants.APP_NAME, JOptionPane.ERROR_MESSAGE)
+                Swing.errorMessage = e.message!!
+                MessageDialog.error(e.message!!)
             }
         }
         finally {

@@ -7,7 +7,20 @@ package gnuwimp.audioconverter
 
 import gnuwimp.util.FileInfo
 
-//------------------------------------------------------------------------------
+/***
+ *      ______                     _
+ *     |  ____|                   | |
+ *     | |__   _ __   ___ ___   __| | ___ _ __ ___
+ *     |  __| | '_ \ / __/ _ \ / _` |/ _ \ '__/ __|
+ *     | |____| | | | (_| (_) | (_| |  __/ |  \__ \
+ *     |______|_| |_|\___\___/ \__,_|\___|_|  |___/
+ *
+ *
+ */
+
+/**
+ * All encoder arguments are set here.
+ */
 enum class Encoders(index: Int, name: String, ext: String, exe: String, vararg params: String) {
     MP3_CBR_32(0, "MP3 CBR 32 Kbps", "mp3", "lame", "-b", "32", "--cbr"),
     MP3_CBR_48(1, "MP3 CBR 48 Kbps", "mp3", "lame", "-b", "48", "--cbr"),
@@ -35,16 +48,18 @@ enum class Encoders(index: Int, name: String, ext: String, exe: String, vararg p
     QAAC_CBR_80(20, "Q-AAC HE/CBR 80 Kbps", "m4a", "qaac64", "--he", "--cbr", "80"),
     QAAC_CVBR_96(21, "Q-AAC CVBR ~96 Kbps", "m4a", "qaac64", "--cvbr", "96"),
     QAAC_TVBR_128(22, "Q-AAC TVBR63 ~128 Kbps", "m4a", "qaac64", "--tvbr", "63"),
-    QAAC_TVBR_256(23, "Q-AAC TVBR109 ~256 Kbps", "m4a", "qaac64", "--tvbr", "109"),
-    QAAC_TVBR_320(24, "Q-AAC TVBR127 ~320 Kbps", "m4a", "qaac64", "--tvbr", "127"),
-    QAAC_ALAC(25, "Q-AAC ALAC", "m4a", "qaac64", "--alac"),
+    QAAC_TVBR_192(23, "Q-AAC TVBR91 ~192 Kbps", "m4a", "qaac64", "--tvbr", "91"),
+    QAAC_TVBR_256(24, "Q-AAC TVBR109 ~256 Kbps", "m4a", "qaac64", "--tvbr", "109"),
+    QAAC_TVBR_320(25, "Q-AAC TVBR127 ~320 Kbps", "m4a", "qaac64", "--tvbr", "127"),
+    QAAC_ALAC(26, "Q-AAC ALAC", "m4a", "qaac64", "--alac"),
 
-    FAAC_64(26, "F-AAC ABR ~64 Kbps", "m4a", "faac", "-b", "64"),
-    FAAC_128(27, "F-AAC ABR ~128 Kbps", "m4a", "faac", "-b", "128"),
-    FAAC_256(28, "F-AAC ABR ~256 Kbps", "m4a", "faac", "-b", "256"),
-    FAAC_320(29, "F-AAC ABR ~320 Kbps", "m4a", "faac", "-b", "320"),
+    FAAC_64(27, "F-AAC ABR ~64 Kbps", "m4a", "faac", "-b", "64"),
+    FAAC_128(28, "F-AAC ABR ~128 Kbps", "m4a", "faac", "-b", "128"),
+    FAAC_192(29, "F-AAC ABR ~192 Kbps", "m4a", "faac", "-b", "192"),
+    FAAC_256(30, "F-AAC ABR ~256 Kbps", "m4a", "faac", "-b", "256"),
+    FAAC_320(31, "F-AAC ABR ~320 Kbps", "m4a", "faac", "-b", "320"),
 
-    FLAC(30, "FLAC", "flac", "flac");
+    FLAC(32, "FLAC", "flac", "flac");
 
     var encoderIndex = index
     var encoderName  = name
@@ -52,6 +67,9 @@ enum class Encoders(index: Int, name: String, ext: String, exe: String, vararg p
     val encoderArg   = mutableListOf<String>()
     var fileExt      = ext
 
+    /**
+     *
+     */
     init {
         params.forEach {
             encoderArg.add(it)
@@ -61,29 +79,35 @@ enum class Encoders(index: Int, name: String, ext: String, exe: String, vararg p
         private val LAST = FLAC
         val DEFAULT = MP3_CBR_128
 
-        //--------------------------------------------------------------------------
+        /**
+         * Create encoder.
+         */
         fun createEncoder(encoder: Encoders, wavHeader: WavHeader, outName: String): List<String> {
-            return if (encoder.executable == "lame") {
-                createLameEncoder(encoder, wavHeader, outName)
-            }
-            else if (encoder.executable == "faac") {
-                createFaacEncoder(encoder, wavHeader, outName)
-            }
-            else if (encoder.executable == "qaac64") {
-                createQaac64Encoder(encoder, wavHeader, outName)
-            }
-            else if (encoder.executable == "oggenc") {
-                createOggEncEncoder(encoder, wavHeader, outName)
-            }
-            else if (encoder.executable == "flac") {
-                createFlacEncoder(encoder, wavHeader, outName)
-            }
-            else {
-                throw Exception("error: uknown encoder executable - ${encoder.executable}")
+            return when (encoder.executable) {
+                "lame" -> {
+                    createLameEncoder(encoder, wavHeader, outName)
+                }
+                "faac" -> {
+                    createFaacEncoder(encoder, wavHeader, outName)
+                }
+                "qaac64" -> {
+                    createQaac64Encoder(encoder, wavHeader, outName)
+                }
+                "oggenc" -> {
+                    createOggEncEncoder(encoder, wavHeader, outName)
+                }
+                "flac" -> {
+                    createFlacEncoder(encoder, wavHeader, outName)
+                }
+                else -> {
+                    throw Exception("Error: unknown encoder executable - ${encoder.executable}")
+                }
             }
         }
 
-        //--------------------------------------------------------------------------
+        /**
+         *
+         */
         private fun createFaacEncoder(encoder: Encoders, wavHeader: WavHeader, outName: String): List<String> {
             val list = mutableListOf<String>()
 
@@ -93,14 +117,16 @@ enum class Encoders(index: Int, name: String, ext: String, exe: String, vararg p
             list.add("-X")
             list.add("-C")
 
-            if (wavHeader.channels == Constants.Channels.MONO) {
-                list.add("1")
-            }
-            else if (wavHeader.channels == Constants.Channels.STEREO) {
-                list.add("2")
-            }
-            else {
-                throw Exception("internal error")
+            when (wavHeader.channels) {
+                Constants.Channels.MONO -> {
+                    list.add("1")
+                }
+                Constants.Channels.STEREO -> {
+                    list.add("2")
+                }
+                else -> {
+                    throw Exception("internal error")
+                }
             }
 
             list.add("-R")
@@ -120,7 +146,9 @@ enum class Encoders(index: Int, name: String, ext: String, exe: String, vararg p
             return list
         }
 
-        //--------------------------------------------------------------------------
+        /**
+         *
+         */
         private fun createFlacEncoder(encoder: Encoders, wavHeader: WavHeader, outName: String): List<String> {
             val list = mutableListOf<String>()
 
@@ -132,14 +160,16 @@ enum class Encoders(index: Int, name: String, ext: String, exe: String, vararg p
             list.add("--sample-rate=${wavHeader.sampleRateString2}")
             list.add("--bps=${wavHeader.bitWidth}")
 
-            if (wavHeader.channels == Constants.Channels.MONO) {
-                list.add("--channels=1")
-            }
-            else if (wavHeader.channels == Constants.Channels.STEREO) {
-                list.add("--channels=2")
-            }
-            else {
-                throw Exception("internal error")
+            when (wavHeader.channels) {
+                Constants.Channels.MONO -> {
+                    list.add("--channels=1")
+                }
+                Constants.Channels.STEREO -> {
+                    list.add("--channels=2")
+                }
+                else -> {
+                    throw Exception("internal error")
+                }
             }
 
             encoder.encoderArg.forEach {
@@ -153,7 +183,9 @@ enum class Encoders(index: Int, name: String, ext: String, exe: String, vararg p
             return list
         }
 
-        //--------------------------------------------------------------------------
+        /**
+         *
+         */
         private fun createLameEncoder(encoder: Encoders, wavHeader: WavHeader, outName: String): List<String> {
             val list = mutableListOf<String>()
 
@@ -182,7 +214,9 @@ enum class Encoders(index: Int, name: String, ext: String, exe: String, vararg p
             return list
         }
 
-        //--------------------------------------------------------------------------
+        /**
+         *
+         */
         private fun createOggEncEncoder(encoder: Encoders, wavHeader: WavHeader, outName: String): List<String> {
             val list = mutableListOf<String>()
 
@@ -211,7 +245,9 @@ enum class Encoders(index: Int, name: String, ext: String, exe: String, vararg p
             return list
         }
 
-        //--------------------------------------------------------------------------
+        /**
+         *
+         */
         private fun createQaac64Encoder(encoder: Encoders, wavHeader: WavHeader, outName: String): List<String> {
             val list = mutableListOf<String>()
 
@@ -227,14 +263,16 @@ enum class Encoders(index: Int, name: String, ext: String, exe: String, vararg p
             list.add("--raw")
             list.add("--raw-channels")
 
-            if (wavHeader.channels == Constants.Channels.MONO) {
-                list.add("1")
-            }
-            else if (wavHeader.channels == Constants.Channels.STEREO) {
-                list.add("2")
-            }
-            else {
-                throw Exception("internal error")
+            when (wavHeader.channels) {
+                Constants.Channels.MONO -> {
+                    list.add("1")
+                }
+                Constants.Channels.STEREO -> {
+                    list.add("2")
+                }
+                else -> {
+                    throw Exception("internal error")
+                }
             }
 
             list.add("--raw-rate")
@@ -254,7 +292,9 @@ enum class Encoders(index: Int, name: String, ext: String, exe: String, vararg p
             return list
         }
 
-        //----------------------------------------------------------------------
+        /**
+         *
+         */
         fun toEncoder(index: Int): Encoders {
             return when(index) {
                 MP3_CBR_32.encoderIndex -> MP3_CBR_32
@@ -280,19 +320,23 @@ enum class Encoders(index: Int, name: String, ext: String, exe: String, vararg p
                 QAAC_CBR_80.encoderIndex -> QAAC_CBR_80
                 QAAC_CVBR_96.encoderIndex -> QAAC_CVBR_96
                 QAAC_TVBR_128.encoderIndex -> QAAC_TVBR_128
+                QAAC_TVBR_192.encoderIndex -> QAAC_TVBR_192
                 QAAC_TVBR_256.encoderIndex -> QAAC_TVBR_256
                 QAAC_TVBR_320.encoderIndex -> QAAC_TVBR_320
                 QAAC_ALAC.encoderIndex -> QAAC_ALAC
                 FAAC_64.encoderIndex -> FAAC_64
                 FAAC_128.encoderIndex -> FAAC_128
+                FAAC_192.encoderIndex -> FAAC_192
                 FAAC_256.encoderIndex -> FAAC_256
                 FAAC_320.encoderIndex -> FAAC_320
                 FLAC.encoderIndex -> FLAC
-                else -> throw Exception("error: encoder index is out of range ($index)\nvalid values are from 0 to ${LAST.encoderIndex}")
+                else -> throw Exception("Error: encoder index is out of range ($index)\nvalid values are from 0 to ${LAST.encoderIndex}")
             }
         }
 
-        //----------------------------------------------------------------------
+        /**
+         * Create help text.
+         */
         val toHelp: String
             get() {
                 var res = ""
@@ -305,7 +349,9 @@ enum class Encoders(index: Int, name: String, ext: String, exe: String, vararg p
                 return res
             }
 
-        //----------------------------------------------------------------------
+        /**
+         * Create list of encoder names.
+         */
         val toNames: List<String>
             get() {
             val res = mutableListOf<String>()

@@ -95,14 +95,16 @@ Use "" around text and paths with spaces.
                              20 = Q-AAC HE/CBR 80 Kbps
                              21 = Q-AAC CVBR ~96 Kbps
                              22 = Q-AAC TVBR63 ~128 Kbps
-                             23 = Q-AAC TVBR109 ~256 Kbps
-                             24 = Q-AAC TVBR127 ~320 Kbps
-                             25 = Q-AAC ALAC
-                             26 = F-AAC ABR ~64 Kbps
-                             27 = F-AAC ABR ~128 Kbps
-                             28 = F-AAC ABR ~256 Kbps
-                             29 = F-AAC ABR ~320 Kbps
-                             30 = FLAC
+                             23 = Q-AAC TVBR91 ~192 Kbps
+                             24 = Q-AAC TVBR109 ~256 Kbps
+                             25 = Q-AAC TVBR127 ~320 Kbps
+                             26 = Q-AAC ALAC
+                             27 = F-AAC ABR ~64 Kbps
+                             28 = F-AAC ABR ~128 Kbps
+                             29 = F-AAC ABR ~192 Kbps
+                             30 = F-AAC ABR ~256 Kbps
+                             31 = F-AAC ABR ~320 Kbps
+                             32 = FLAC
 --auto                     start automatically and quit after successful encoding (optional)
 --auto2                    start automatically and quit even for error (optional)
 </pre>
@@ -123,36 +125,38 @@ To convert directories from the command line use these arguments:
 
 ## Changes
 <pre>
-3.0:    added conversion for a selection of files
-        added faac encoder
-        added flac encoder
-        possible to use qaac64 in linux (version 2.83)
-        bug fixes and improvements
+3.01:   Bug fixes and improvements.
 
-2.6.1:  minor bug fixes and improvements
+3.0:    Added conversion for a selection of files.
+        Added faac encoder.
+        Added flac encoder.
+        Possible to use qaac64 in linux (version 2.83).
+        Bug fixes and improvements.
 
-2.6:    added overwrite destination files option
-        some bug fixes and improvements
+2.6.1:  Minor bug fixes and improvements.
 
-2.5:    added aac encoding (Windows only, requires iTunes + qaac64)
-        minor improvements
-        updated Jaudiotagger library and added it to the source tree
+2.6:    Added overwrite destination files option.
+        Some bug fixes and improvements.
 
-2.4:    renamed again from toMP3 to AudioConverter
-        added support for file to file conversion
-        ui changes
-        bug fixes
+2.5:    Added aac encoding (Windows only, requires iTunes + qaac64).
+        Minor improvements.
+        Updated Jaudiotagger library and added it to the source tree.
 
-2.3:    added jaudiotagger for tag writing
-        added support for ogg encoding
-        ui changes
-        bitrate selection changed
+2.4:    Renamed again from toMP3 to AudioConverter.
+        Added support for file to file conversion.
+        UI changes.
+        Bug fixes.
 
-2.2:    renamed from gabc to toMP3
-        added support for more input files (m4a/flac/ogg/wav/avi/mkv/mp4)
-        options for mono/stereo and vbr
-        insert silence between tracks
-        bug fixes
+2.3:    Added jaudiotagger for tag writing.
+        Added support for ogg encoding.
+        UI changes.
+        Bitrate selection changed.
 
-2.1:    bug fixes
+2.2:    Renamed from gabc to toMP3.
+        Added support for more input files (m4a/flac/ogg/wav/avi/mkv/mp4).
+        Options for mono/stereo and vbr.
+        Insert silence between tracks.
+        Bug fixes.
+
+2.1:    Bug fixes.
 </pre>

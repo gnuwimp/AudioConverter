@@ -7,7 +7,20 @@ package gnuwimp.audioconverter
 
 import gnuwimp.util.getIntAt
 
-//------------------------------------------------------------------------------
+/***
+ *     __          __         _    _                _
+ *     \ \        / /        | |  | |              | |
+ *      \ \  /\  / /_ ___   _| |__| | ___  __ _  __| | ___ _ __
+ *       \ \/  \/ / _` \ \ / /  __  |/ _ \/ _` |/ _` |/ _ \ '__|
+ *        \  /\  / (_| |\ V /| |  | |  __/ (_| | (_| |  __/ |
+ *         \/  \/ \__,_| \_/ |_|  |_|\___|\__,_|\__,_|\___|_|
+ *
+ *
+ */
+
+/**
+ * Parse wav header.
+ */
 class WavHeader {
     val sampleRateString: String
     val sampleRateString2: String
@@ -17,25 +30,29 @@ class WavHeader {
     val bitWidth: Short
     val data: Int
 
-    //--------------------------------------------------------------------------
+    /**
+     *
+     */
     constructor() {
-        sampleRate = 0
-        sampleRateString = ""
+        sampleRate        = 0
+        sampleRateString  = ""
         sampleRateString2 = ""
-        channels = Constants.Channels.INVALID
-        channelString = ""
-        bitWidth = 0
-        data = 0
+        channels          = Constants.Channels.INVALID
+        channelString     = ""
+        bitWidth          = 0
+        data              = 0
     }
 
-    //--------------------------------------------------------------------------
+    /**
+     *
+     */
     constructor(buffer: ByteArray, size: Int) {
         if (size < 50) {
-            throw Exception("error: to few bytes to parse the wav header")
+            throw Exception("Error: to few bytes to parse the wav header")
         }
 
         if (buffer[0].toInt().toChar() != 'R' || buffer[1].toInt().toChar() != 'I' || buffer[2].toInt().toChar() != 'F' || buffer[3].toInt().toChar() != 'F') {
-            throw Exception("error: this is not wav data")
+            throw Exception("Error: this is not wav data")
         }
 
         val ch     = buffer[22].toShort()
@@ -44,13 +61,13 @@ class WavHeader {
         bitWidth   = buffer[34].toShort()
 
         if (channels == Constants.Channels.INVALID) {
-            throw Exception("error: channel count ($ch) is out of range")
+            throw Exception("Error: channel count ($ch) is out of range")
         }
 
         channelString = if (channels == Constants.Channels.MONO) "mono" else "stereo"
 
         if (bitWidth != 8.toShort() && bitWidth != 16.toShort() && bitWidth != 24.toShort() && bitWidth != 32.toShort()) {
-            throw Exception("error: bitwidth ($bitWidth) is out of range")
+            throw Exception("Error: bitwidth ($bitWidth) is out of range")
         }
 
         sampleRateString = when(sampleRate) {
@@ -70,7 +87,7 @@ class WavHeader {
             96000 -> "96"
             176400 -> "176.4"
             192000 -> "192"
-            else -> throw Exception("error: samplerate ($sampleRate) is out of range")
+            else -> throw Exception("Error: samplerate ($sampleRate) is out of range")
         }
 
         sampleRateString2 = when(sampleRate) {

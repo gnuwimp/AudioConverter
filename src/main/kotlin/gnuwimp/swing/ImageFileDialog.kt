@@ -15,6 +15,19 @@ import javax.swing.JComponent
 import javax.swing.JFileChooser
 import javax.swing.filechooser.FileFilter
 
+
+
+/***
+ *      _____  _           _        _____                _
+ *     |  __ \| |         | |      |  __ \              (_)
+ *     | |__) | |__   ___ | |_ ___ | |__) | __ _____   ___  _____      __
+ *     |  ___/| '_ \ / _ \| __/ _ \|  ___/ '__/ _ \ \ / / |/ _ \ \ /\ / /
+ *     | |    | | | | (_) | || (_) | |   | | |  __/\ V /| |  __/\ V  V /
+ *     |_|    |_| |_|\___/ \__\___/|_|   |_|  \___| \_/ |_|\___| \_/\_/
+ *
+ *
+ */
+
 /**
  * A photo preview for the dialog.
  */
@@ -23,7 +36,7 @@ private class PhotoPreview(fileChooser: JFileChooser) : JComponent() {
     private var file:      File?      = null
 
     init {
-        preferredSize = Dimension(200, 200)
+        preferredSize = Dimension(320, 320)
 
         fileChooser.addPropertyChangeListener { pce ->
             var update = false
@@ -58,10 +71,11 @@ private class PhotoPreview(fileChooser: JFileChooser) : JComponent() {
                 val bufferedImage = ImageIO.read(file)
 
                 if (bufferedImage != null) {
-                    thumbnail = bufferedImage.toImageIcon(200.0)
+                    thumbnail = bufferedImage.toImageIcon(320.0)
                 }
             }
-            catch (e: Exception) {
+            catch (_: Exception) {
+                thumbnail = null
             }
         }
     }
@@ -93,18 +107,29 @@ private class PhotoPreview(fileChooser: JFileChooser) : JComponent() {
     }
 }
 
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
+/***
+ *      _____                            ______ _ _      _____  _       _
+ *     |_   _|                          |  ____(_) |    |  __ \(_)     | |
+ *       | |  _ __ ___   __ _  __ _  ___| |__   _| | ___| |  | |_  __ _| | ___   __ _
+ *       | | | '_ ` _ \ / _` |/ _` |/ _ \  __| | | |/ _ \ |  | | |/ _` | |/ _ \ / _` |
+ *      _| |_| | | | | | (_| | (_| |  __/ |    | | |  __/ |__| | | (_| | | (_) | (_| |
+ *     |_____|_| |_| |_|\__,_|\__, |\___|_|    |_|_|\___|_____/|_|\__,_|_|\___/ \__, |
+ *                             __/ |                                             __/ |
+ *                            |___/                                             |___/
+ */
 
 /**
  * A file dialog for choosing an image.
  * File filter for the most used images is set.
  * And photo preview are turned on.
  */
-class ImageFileDialog(val path: String, val parent: Component? = null) : JFileChooser() {
+class ImageFileDialog(val path: String, val parentWindow: Component? = null) : JFileChooser() {
+    companion object {
+        val IMAGE_TYPES: Array<String> = ImageIO.getWriterFormatNames()
+    }
+
     init {
-        val file = File(path)
+        val file  = File(path)
 
         currentDirectory = if (file.isDirectory == false) {
             File(System.getProperty("user.home"))
@@ -114,15 +139,21 @@ class ImageFileDialog(val path: String, val parent: Component? = null) : JFileCh
         }
 
         fileFilter = object : FileFilter() {
-            //------------------------------------------------------------------
+            /**
+             *
+             */
             override fun getDescription() = "Image Files"
 
-            //------------------------------------------------------------------
-            override fun accept(file: File) = file.name.endsWith(".jpg") ||
-                                              file.name.endsWith(".jpeg") ||
-                                              file.name.endsWith(".gif") ||
-                                              file.name.endsWith(".png") ||
-                                              file.isDirectory
+            /**
+             * Accept image file that java has support for.
+             * And directories.
+             */
+            override fun accept(file: File): Boolean {
+                return file.isDirectory == true || IMAGE_TYPES.any {
+                    file.name.endsWith(suffix = it, ignoreCase = true)
+                }
+            }
+
         }
 
         accessory  = PhotoPreview(this)
@@ -134,7 +165,7 @@ class ImageFileDialog(val path: String, val parent: Component? = null) : JFileCh
      */
     val file: File?
         get() {
-            return if (showOpenDialog(parent) == APPROVE_OPTION && selectedFile != null) {
+            return if (showOpenDialog(parentWindow) == APPROVE_OPTION && selectedFile != null) {
                 selectedFile
             }
             else {

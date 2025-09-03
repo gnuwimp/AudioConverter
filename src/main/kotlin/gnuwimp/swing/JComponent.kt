@@ -11,6 +11,17 @@ import java.awt.Color
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 
+/***
+ *           _  _____                                             _
+ *          | |/ ____|                                           | |
+ *          | | |     ___  _ __ ___  _ __   ___  _ __   ___ _ __ | |_
+ *      _   | | |    / _ \| '_ ` _ \| '_ \ / _ \| '_ \ / _ \ '_ \| __|
+ *     | |__| | |___| (_) | | | | | | |_) | (_) | | | |  __/ | | | |_
+ *      \____/ \_____\___/|_| |_| |_| .__/ \___/|_| |_|\___|_| |_|\__|
+ *                                  | |
+ *                                  |_|
+ */
+
 /**
  * Create an etched around the widget or turn it off
  */

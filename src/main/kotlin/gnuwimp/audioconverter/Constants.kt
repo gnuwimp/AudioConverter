@@ -5,7 +5,16 @@
 
 package gnuwimp.audioconverter
 
-import gnuwimp.audioconverter.merge1.Parameters
+/***
+ *       _____                _              _
+ *      / ____|              | |            | |
+ *     | |     ___  _ __  ___| |_ __ _ _ __ | |_ ___
+ *     | |    / _ \| '_ \/ __| __/ _` | '_ \| __/ __|
+ *     | |___| (_) | | | \__ \ || (_| | | | | |_\__ \
+ *      \_____\___/|_| |_|___/\__\__,_|_| |_|\__|___/
+ *
+ *
+ */
 
 object Constants {
     const val ABOUT_APP          = "About AudioConverter"
@@ -17,26 +26,36 @@ object Constants {
     val       OVERWRITE_LIST_IDX = listOf("0", "1", "2")
     val       THREAD_LIST        = listOf("1", "2", "3", "4", "5", "6", "7", "8", "12", "16", "24", "32", "48", "64", "96", "128")
 
+    /**
+     * Running from command line options.
+     */
     enum class Auto {
         NO,
         YES_STOP_ON_ERROR,
         YES_QUIT_ON_ERROR
     }
 
+    /**
+     * Channels in wav.
+     */
     enum class Channels {
         INVALID,
         MONO,
         STEREO,
     }
 
+    /**
+     *
+     */
     enum class Overwrite {
         NO,
         OLDER,
         ALL
     }
 
-    val TAB1_HELP: String = "<html>" +
-            "<h3>Transcode and merge all audio/video files in a directory into one audio file</h3>" +
+    val HELP_MERGE_DIR: String = "<html>" +
+            "<b>Transcode and merge all audio/video files in a directory into one audio file</b><br>" +
+            "<br>" +
 
             "Select a source directory with audio or video files.<br>" +
             "Sub directories are not used.<br>" +
@@ -54,7 +73,7 @@ object Constants {
             "With <i>artist - title (year).encoder_extension</i> or <i>artist - title.encoder_extension</i> as file name<br>" +
             "<br>" +
 
-            "<h3>Command line arguments</h3>" +
+            "<b>Command line arguments</b><br>" +
             "Probably best to use only ascii characters on Windows.<br>" +
             "Wrap strings that contain spaces with double quotes (\"/my path/to files\").<br>" +
             "<pre>" +
@@ -65,7 +84,7 @@ object Constants {
             "--comment [TEXT]           comment string (optional)\n" +
             "--cover [PATH]             track cover image (optional)\n" +
             "--year [YYYY]              track year (optional, 1 - 9999)\n" +
-            "--genre [TEXT]             genre string (optional, default ${Parameters.DEFAULT_GENRE})\n" +
+            "--genre [TEXT]             genre string (optional, default ${MergeParams.DEFAULT_GENRE})\n" +
             "--gap [SECONDS]            insert silence between tracks (optional, default 0)\n" +
             "                             valid values are: 0 - 5\n" +
             "--mono                     downmix stereo to mono (optional)\n" +
@@ -75,12 +94,15 @@ object Constants {
             Encoders.toHelp +
             "--auto                     start automatically and quit after successful encoding (optional)\n" +
             "--auto2                    start automatically and quit even for error (optional)\n" +
-            "<br><br><br>" +
+            "<br>" +
+            "<br>" +
+            "<br>" +
             "</pre>" +
             "</html>"
 
-    const val TAB2_HELP: String = "<html>" +
-            "<h3>Transcode and merge all selected audio/video files into one audio file</h3>" +
+    const val HELP_MERGE_FILES: String = "<html>" +
+            "<b>Transcode and merge all selected audio/video files into one audio file</b><br>" +
+            "<br>" +
 
             "Select files.<br>" +
             "Select destination directory.<br>" +
@@ -98,8 +120,9 @@ object Constants {
             "<br>" +
             "</html>"
 
-    val TAB3_HELP: String = "<html>" +
-            "<h3>Transcode all audio files in a directory tree to separate files</h3>" +
+    val HELP_CONVERT_DIR: String = "<html>" +
+            "<b>Transcode all audio files in a directory tree to separate files</b><br>" +
+            "<br>" +
 
             "Select root start directory.<br>" +
             "Select root destination directory (must be outside of start directory).<br>" +
@@ -118,7 +141,7 @@ object Constants {
             "The most common tags (if possible) will be copied including cover art.<br>" +
             "<br>" +
 
-            "<h3>Command line arguments</h3>" +
+            "<b>Command line arguments</b><br>" +
             "<pre>" +
             "--mode2                    set this mode\n" +
             "--src [PATH]               root directory with audio files\n" +
@@ -131,12 +154,15 @@ object Constants {
             Encoders.toHelp +
             "--auto                     start automatically and quit after successful encoding (optional)\n" +
             "--auto2                    start automatically and quit even for error (optional)\n" +
-            "<br><br><br>" +
+            "<br>" +
+            "<br>" +
+            "<br>" +
             "</pre>" +
             "</html>"
 
-    const val TAB4_HELP: String = "<html>" +
-            "<h3>Transcode selected audio/video files to separate audio files</h3>" +
+    const val HELP_CONVERT_FILES: String = "<html>" +
+            "<b>Transcode selected audio/video files to separate audio files</b><br>" +
+            "<br>" +
 
             "Select files.<br>" +
             "Select destination directory.<br>" +
@@ -160,7 +186,8 @@ object Constants {
     fun aboutApp(): String {
         var about = "<html>" +
 
-        "<h2>AudioConverter 3.0</h2>" +
+        "<b>AudioConverter 3.01</b><br>" +
+        "<br>" +
 
         "Copyright 2021 - 2025 gnuwimp@gmail.com.<br>" +
         "Released under the GNU General Public License v3.0.<br>" +
@@ -168,15 +195,19 @@ object Constants {
         "Use AudioConverter with caution and at your own risk.<br>" +
         "<br>" +
 
-        "<h3>About</h3>" +
-        "This program converts audio and video files to mp3/ogg/aac audio files.<br>" +
-        "For best audio quality do use lossless files formats.<br>Such as wav or flac.<br>" +
-        "First mode is all audio/video files in one directory into one file.<br>" +
-        "Second mode is all files that are found in a directory tree to separate files.<br>" +
-        "Third mode is selected files to separate files.<br>" +
+        "<b>About</b><br>" +
+        "This program transcodes audio and video files to mp3/ogg/aac audio files.<br>" +
+        "For best audio quality do use lossless files format for the source.<br>" +
+        "Such as wav or flac.<br>" +
         "<br>" +
 
-        "<h3>Requirements</h3>" +
+        "First mode transcodes all audio/video files in one directory into one file.<br>" +
+        "Second mode transcodes a list of files into one file.<br>" +
+        "Third mode transcodes all files that are found in a directory tree to separate files.<br>" +
+        "Fourth mode transcodes a list of files to separate files.<br>" +
+        "<br>" +
+
+        "<b>Requirements</b><br>" +
         "Ffmpeg for decoding mp3/flac/wav/ogg/m4a/aac/mp4/avi/mkv files.<br>" +
         "Lame for encoding mp3 files.<br>" +
         "Oggenc for encoding ogg files.<br>" +
@@ -193,16 +224,19 @@ object Constants {
         "Download flac from <a href=\"https://github.com/xiph/flac\">https://github.com/xiph/flac</a>.<br>" +
         "<br>" +
 
-        "<h3>Following third party software library are used</h3>" +
+        "<b>Following third party software library are used</b><br>" +
         "JAudioTagger - <a href=\"http://www.jthink.net/jaudiotagger\">http://www.jthink.net/jaudiotagger</a><br>" +
         "<br>" +
 
-        "<h3>Versions</h3>"
+        "<b>Versions</b><br>"
 
         about += "Java: " + System.getProperty("java.version") + "<br>"
         about += "Kotlin: " + KotlinVersion.CURRENT + "<br>"
-        about += "JAudioTagger: 3.0.2-SNAPSHOT" + "<br><br><br>"
-        about += "<html>"
+        about += "JAudioTagger: 3.0.2-SNAPSHOT<br>"
+        "<br>" +
+        "<br>" +
+        "<br>" +
+        "<html>"
 
         return about
     }

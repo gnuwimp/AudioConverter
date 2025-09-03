@@ -3,22 +3,36 @@
  * Released under the GNU General Public License v3.0
  */
 
-package gnuwimp.audioconverter.convert1
+package gnuwimp.audioconverter
 
-import gnuwimp.audioconverter.*
 import gnuwimp.swing.*
 import gnuwimp.util.*
 import java.io.File
-import javax.swing.*
+import javax.swing.JButton
+import javax.swing.JFileChooser
+import javax.swing.JLabel
+import javax.swing.JTextField
 
-//------------------------------------------------------------------------------
-@Suppress("UNUSED_VALUE")
-class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
+/***
+ *       _____                          _   _____  _      _____                 _
+ *      / ____|                        | | |  __ \(_)    |  __ \               | |
+ *     | |     ___  _ ____   _____ _ __| |_| |  | |_ _ __| |__) |_ _ _ __   ___| |
+ *     | |    / _ \| '_ \ \ / / _ \ '__| __| |  | | | '__|  ___/ _` | '_ \ / _ \ |
+ *     | |___| (_) | | | \ V /  __/ |  | |_| |__| | | |  | |  | (_| | | | |  __/ |
+ *      \_____\___/|_| |_|\_/ \___|_|   \__|_____/|_|_|  |_|   \__,_|_| |_|\___|_|
+ *
+ *
+ */
+
+/**
+ * Convert a directory of files.
+ */
+class ConvertDirPanel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
     private val convertButton  = JButton("Convert")
     private val destButton     = JButton("Browse")
     private val destInput      = JTextField()
     private val destLabel      = JLabel("Destination:")
-    private val encoderCombo   = ComboBox<String>(strings = Encoders.Companion.toNames, Encoders.Companion.DEFAULT.encoderIndex)
+    private val encoderCombo   = ComboBox<String>(strings = Encoders.toNames, Encoders.DEFAULT.encoderIndex)
     private val encoderLabel   = JLabel("Encoder:")
     private val helpButton     = JButton("Help")
     private val overwriteCombo = ComboBox<String>(strings = Constants.OVERWRITE_LIST, 0)
@@ -30,7 +44,9 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
     private val threadsLabel   = JLabel("Threads:")
     var         auto           = Constants.Auto.NO
 
-    //--------------------------------------------------------------------------
+    /**
+     *
+     */
     init {
         val w = 16
 
@@ -61,12 +77,16 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
         destButton.toolTipText    = destInput.toolTipText
         sourceButton.toolTipText  = sourceInput.toolTipText
 
-        //----------------------------------------------------------------------
+        /**
+         *
+         */
         convertButton.addActionListener {
             run()
         }
 
-        //----------------------------------------------------------------------
+        /**
+         *
+         */
         destButton.addActionListener {
             val dialog               = JFileChooser(destInput.text.dir(Main.pref.convertDestFile))
             dialog.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
@@ -78,12 +98,16 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
             }
         }
 
-        //----------------------------------------------------------------------
+        /**
+         *
+         */
         helpButton.addActionListener {
-            AboutHandler(appName = Constants.HELP, aboutText = Constants.TAB3_HELP).show(parent = Main.window)
+            AboutHandler(appName = Constants.HELP, aboutText = Constants.HELP_CONVERT_DIR).show(parent = Main.window)
         }
 
-        //----------------------------------------------------------------------
+        /**
+         *
+         */
         sourceButton.addActionListener {
             val dialog               = JFileChooser(sourceInput.text.dir(Main.pref.convertSrcFile))
             dialog.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
@@ -96,12 +120,14 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
         }
     }
 
-    //--------------------------------------------------------------------------
+    /**
+     * Load command line arguments.
+     */
     fun argLoad(args: Array<String>): Boolean {
         try {
             val start      = args.findString("--src", "")
             val dest       = args.findString("--dest", "")
-            val encoder    = args.findInt("--encoder", Encoders.Companion.DEFAULT.encoderIndex.toLong()).toInt()
+            val encoder    = args.findInt("--encoder", Encoders.DEFAULT.encoderIndex.toLong()).toInt()
             val threads    = args.findString("--threads", "1")
             var threads2   = threads
             val overwrite  = args.findString("--overwrite", "0")
@@ -133,7 +159,7 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
             }
 
             if (threads2 != "") {
-                throw Exception("error: invalid value for --threads ($threads)")
+                throw Exception("Error: invalid value for --threads ($threads)")
             }
 
             for ((index, choice) in Constants.OVERWRITE_LIST_IDX.withIndex()) {
@@ -145,140 +171,155 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
             }
 
             if (overwrite2 != "") {
-                throw Exception("error: invalid value for --overwrite ($overwrite)")
+                throw Exception("Error: invalid value for --overwrite ($overwrite)")
             }
 
             return true
         }
         catch (e: Exception) {
             if (auto == Constants.Auto.YES_QUIT_ON_ERROR) {
-                println(e.message)
+                println(e.message!!)
                 Main.window.quit()
             }
             else {
-                JOptionPane.showMessageDialog(null, e.message, Constants.APP_NAME, JOptionPane.ERROR_MESSAGE)
+                MessageDialog.error(e.message!!)
             }
 
             return false
         }
     }
 
-    //--------------------------------------------------------------------------
-    private fun stage1SetParameters() : Parameters {
-        val parameters = Parameters(
+    /**
+     * Create parameters.
+     */
+    private fun stage1SetParameters() : ConvertDirParams {
+        val convertDirParams = ConvertDirParams(
             source    = sourceInput.text,
             dest      = destInput.text,
-            encoder   = Encoders.Companion.toEncoder(encoderCombo.selectedIndex),
+            encoder   = Encoders.toEncoder(encoderCombo.selectedIndex),
             threads   = threadsCombo.text.toInt(),
             overwrite = if (overwriteCombo.selectedIndex == 1) Constants.Overwrite.OLDER else if (overwriteCombo.selectedIndex == 2) Constants.Overwrite.ALL else Constants.Overwrite.NO
         )
 
-        parameters.validate()
-        return parameters
+        convertDirParams.validate()
+        return convertDirParams
     }
 
-    //--------------------------------------------------------------------------
-    private fun stage2LoadFiles(parameters: Parameters) {
-        val files = FileInfo(parameters.source).readDir(FileInfo.ReadDirOption.RECURSIVE)
+    /**
+     * Load filenames from directories.
+     */
+    private fun stage2LoadFiles(convertDirParams: ConvertDirParams) {
+        val files = FileInfo(convertDirParams.source).readDir(FileInfo.ReadDirOption.RECURSIVE)
 
-        parameters.inputFiles = files.filter {
+        convertDirParams.inputFiles = files.filter {
             it.isAudioFile
         }
 
-        if (parameters.inputFiles.isEmpty() == true) {
-            throw Exception("error: no audio/video files found in ${parameters.source}")
+        if (convertDirParams.inputFiles.isEmpty() == true) {
+            throw Exception("Error: no audio/video files found in ${convertDirParams.source}")
         }
 
-        parameters.inputFiles = parameters.inputFiles.sortedBy {
+        convertDirParams.inputFiles = convertDirParams.inputFiles.sortedBy {
             it.filename
         }
 
-        val start = FileInfo(parameters.source).canonicalPath
-        val dest  = FileInfo(parameters.dest).canonicalPath
+        val start = FileInfo(convertDirParams.source).canonicalPath
+        val dest  = FileInfo(convertDirParams.dest).canonicalPath
 
-        parameters.inputFiles.forEach {
+        convertDirParams.inputFiles.forEach {
             val sourceDir = FileInfo(it.path).canonicalPath
             val destDir   = FileInfo(dest + sourceDir.replace(start, "")).canonicalPath
-            val destFile  = FileInfo(destDir + File.separator + it.name.replaceAfterLast(".", parameters.encoder.fileExt))
+            val destFile  = FileInfo(destDir + File.separator + it.name.replaceAfterLast(".", convertDirParams.encoder.fileExt))
 
-            parameters.outputFiles.add(destFile)
+            convertDirParams.outputFiles.add(destFile)
         }
     }
 
-    //--------------------------------------------------------------------------
-    private fun stage3CreateDirectories(parameters: Parameters) {
-        parameters.outputFiles.forEach {
+    /**
+     * Create all needed directories.
+     */
+    private fun stage3CreateDirectories(convertDirParams: ConvertDirParams) {
+        convertDirParams.outputFiles.forEach {
             val parent = FileInfo(it.path)
 
             if (parent.isDir == false && parent.file.mkdir() == false) {
-                throw Exception("error: can't create directory '${parent.filename}'")
+                throw Exception("Error: can't create directory '${parent.filename}'")
             }
         }
     }
 
-    //--------------------------------------------------------------------------
-    private fun stage4CreateTasks(parameters: Parameters): List<gnuwimp.util.Task> {
-        val tasks    = mutableListOf<gnuwimp.util.Task>()
+    /**
+     * Create tasks for the threads.
+     */
+    private fun stage4CreateTasks(convertDirParams: ConvertDirParams): List<Task> {
+        val tasks    = mutableListOf<Task>()
         val outfiles = mutableMapOf<String, Boolean>()
 
-        for (index in parameters.inputFiles.indices) {
-            val infile  = parameters.inputFiles[index]
-            val outfile = parameters.outputFiles[index]
+        for (index in convertDirParams.inputFiles.indices) {
+            val infile  = convertDirParams.inputFiles[index]
+            val outfile = convertDirParams.outputFiles[index]
 
             if (outfile.isMissing == true && outfiles[outfile.filename] == null) {
                 outfiles[outfile.filename] = true
-                tasks.add(Task(parameters.inputFiles[index], outfile, parameters.encoder))
+                tasks.add(ConvertTask(convertDirParams.inputFiles[index], outfile, convertDirParams.encoder))
             }
-            else if (parameters.overwrite == Constants.Overwrite.OLDER && outfile.mod < infile.mod) {
+            else if (convertDirParams.overwrite == Constants.Overwrite.OLDER && outfile.mod < infile.mod) {
                 outfiles[outfile.filename] = true
-                tasks.add(Task(parameters.inputFiles[index], outfile, parameters.encoder))
+                tasks.add(ConvertTask(convertDirParams.inputFiles[index], outfile, convertDirParams.encoder))
             }
-            else if (parameters.overwrite == Constants.Overwrite.ALL) {
+            else if (convertDirParams.overwrite == Constants.Overwrite.ALL) {
                 outfiles[outfile.filename] = true
-                tasks.add(Task(parameters.inputFiles[index], outfile, parameters.encoder))
+                tasks.add(ConvertTask(convertDirParams.inputFiles[index], outfile, convertDirParams.encoder))
             }
         }
 
         if (tasks.isEmpty() == true) {
-            throw FileExistException("error: no files to convert\nall files already converted")
+            throw FileExistException("Error: no files to convert.\nAll files already converted!")
         }
 
         return tasks
     }
 
-    //--------------------------------------------------------------------------
-    private fun stage5Transcoding(parameters: Parameters, tasks: List<gnuwimp.util.Task>) {
+    /**
+     * Run all transcoding threads.
+     */
+    private fun stage5Transcoding(convertDirParams: ConvertDirParams, tasks: List<Task>) {
         val progress = ConvertManager(
             tasks      = tasks,
-            maxThreads = parameters.threads,
+            maxThreads = convertDirParams.threads,
             onError    = TaskManager.Execution.STOP_JOIN,
             onCancel   = TaskManager.Execution.STOP_JOIN
         )
         val dialog = TaskDialog(taskManager = progress, title = "Converting Files", type = TaskDialog.Type.PERCENT, parent = Main.window, height = Swing.defFont.size * 26)
 
         dialog.enableCancel = true
-        ConvertManager.Companion.clear()
-        dialog.start(updateTime = 200L, messages = parameters.threads + 1)
+        ConvertManager.clear()
+        dialog.start(updateTime = 200L, messages = convertDirParams.threads + 1)
         tasks.throwFirstError()
     }
 
-    //--------------------------------------------------------------------------
+    /**
+     * Run all stages.
+     */
     fun run() {
-        Swing.logMessage = ""
+        Swing.logMessage   = ""
         Swing.errorMessage = ""
+        var tasks          = listOf<Task>()
 
         try {
             val parameters = stage1SetParameters()
             stage2LoadFiles(parameters)
             stage3CreateDirectories(parameters)
-            val tasks = stage4CreateTasks(parameters)
+            tasks = stage4CreateTasks(parameters)
             stage5Transcoding(parameters, tasks)
 
-            val message = if (Swing.hasError == true) {
-                "all (${tasks.size}) files encoded successfully but there are some errors - check the log"
+            val ok = tasks.count { it.status == Task.Status.OK }
+
+            val message = if (ok != tasks.size) {
+                "$ok files encoded of ${tasks.size}.\nBut there are some errors!\nCheck the log."
             }
             else {
-                "all (${tasks.size}) files encoded successfully"
+                "$ok files encoded successfully."
             }
 
             Swing.logMessage = message
@@ -287,27 +328,32 @@ class Panel : LayoutPanel(size = Swing.defFont.size / 2 + 1) {
                 Main.window.quit()
             }
             else {
-                JOptionPane.showMessageDialog(this, message, Constants.APP_NAME, JOptionPane.INFORMATION_MESSAGE)
+                MessageDialog.info(message)
             }
         }
         catch (e: FileExistException) {
             if (auto != Constants.Auto.NO) {
-                println("${e.message}")
                 Main.window.quit()
             }
             else {
-                Swing.errorMessage = e.message ?: "!"
-                JOptionPane.showMessageDialog(this, e.message, Constants.APP_NAME, JOptionPane.ERROR_MESSAGE)
+                val ok      = tasks.count { it.status == Task.Status.OK }
+                val message = e.message!! + "\n$ok files encoded of ${tasks.size}"
+
+                Swing.errorMessage = message
+                MessageDialog.error(message)
             }
         }
         catch (e: Exception) {
             if (auto == Constants.Auto.YES_QUIT_ON_ERROR) {
-                println("${e.message}")
+                println(e.message!!)
                 Main.window.quit()
             }
             else {
-                Swing.errorMessage = e.message ?: "!"
-                JOptionPane.showMessageDialog(this, e.message, Constants.APP_NAME, JOptionPane.ERROR_MESSAGE)
+                val ok      = tasks.count { it.status == Task.Status.OK }
+                val message = e.message!! + "\n$ok files encoded of ${tasks.size}"
+
+                Swing.errorMessage = message
+                MessageDialog.error(message)
             }
         }
         finally {

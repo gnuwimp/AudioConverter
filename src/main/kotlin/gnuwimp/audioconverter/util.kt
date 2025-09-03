@@ -5,7 +5,20 @@ import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.Tag
 import java.io.File
 
-//--------------------------------------------------------------------------
+/***
+ *      ______ _ _      _____        __
+ *     |  ____(_) |    |_   _|      / _|
+ *     | |__   _| | ___  | |  _ __ | |_ ___
+ *     |  __| | | |/ _ \ | | | '_ \|  _/ _ \
+ *     | |    | | |  __/_| |_| | | | || (_) |
+ *     |_|    |_|_|\___|_____|_| |_|_| \___/
+ *
+ *
+ */
+
+/**
+ * Parse file extension for valid input files.
+ */
 val FileInfo.isAudioFile: Boolean
     get() {
         if (file.isFile == false) {
@@ -27,7 +40,20 @@ val FileInfo.isAudioFile: Boolean
         }
     }
 
-//--------------------------------------------------------------------------
+/***
+ *       _____ _        _
+ *      / ____| |      (_)
+ *     | (___ | |_ _ __ _ _ __   __ _
+ *      \___ \| __| '__| | '_ \ / _` |
+ *      ____) | |_| |  | | | | | (_| |
+ *     |_____/ \__|_|  |_|_| |_|\__, |
+ *                               __/ |
+ *                              |___/
+ */
+
+/**
+ *
+ */
 fun String.dir(def: File): File {
     val file = File(this)
 
@@ -38,8 +64,20 @@ fun String.dir(def: File): File {
     return def
 }
 
+/***
+ *      _______
+ *     |__   __|
+ *        | | __ _  __ _
+ *        | |/ _` |/ _` |
+ *        | | (_| | (_| |
+ *        |_|\__,_|\__, |
+ *                  __/ |
+ *                 |___/
+ */
 
-//------------------------------------------------------------------------------
+/**
+ *
+ */
 fun Tag.copyArtwork(from: Tag) {
     try {
         val cover = from.firstArtwork
@@ -48,23 +86,25 @@ fun Tag.copyArtwork(from: Tag) {
             addField(cover)
         }
     }
-    catch (e: Exception) {
+    catch (_: Exception) {
     }
 }
 
-//------------------------------------------------------------------------------
+/**
+ *
+ */
 fun Tag.copyField(field: FieldKey, from: Tag) {
     var value = ""
 
     try {
         value = from.getFirst(field)
     }
-    catch (e: Exception) {
+    catch (_: Exception) {
     }
 
     try {
         setField(field, value)
     }
-    catch (e: Exception) {
+    catch (_: Exception) {
     }
 }

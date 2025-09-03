@@ -6,6 +6,17 @@
 package gnuwimp.util
 
 /**
+ *
+ *         /\
+ *        /  \   _ __ _ __ __ _ _   _
+ *       / /\ \ | '__| '__/ _` | | | |
+ *      / ____ \| |  | | | (_| | |_| |
+ *     /_/    \_\_|  |_|  \__,_|\__, |
+ *                               __/ |
+ *                              |___/
+ */
+
+/**
  * Find string in array
  */
 fun Array<String>.find(find: String): Int {
@@ -76,6 +87,17 @@ fun Array<String>.findString(find: String, def: String): String {
 }
 
 /**
+ *      _____ _                 _     _
+ *     |_   _| |               | |   | |
+ *       | | | |_ ___ _ __ __ _| |__ | | ___
+ *       | | | __/ _ \ '__/ _` | '_ \| |/ _ \
+ *      _| |_| ||  __/ | | (_| | |_) | |  __/
+ *     |_____|\__\___|_|  \__,_|_.__/|_|\___|
+ *
+ *
+ */
+
+/**
  * Add numbers in collection and return it as a Long
  */
 fun <T> Iterable<T>.sumByLong(selector: (T) -> Long): Long {
@@ -87,6 +109,17 @@ fun <T> Iterable<T>.sumByLong(selector: (T) -> Long): Long {
 
     return sum
 }
+
+/**
+ *      _      _     _
+ *     | |    (_)   | |
+ *     | |     _ ___| |_
+ *     | |    | / __| __|
+ *     | |____| \__ \ |_
+ *     |______|_|___/\__|
+ *
+ *
+ */
 
 /**
  *
@@ -101,6 +134,17 @@ fun List<String>.add(strings: List<String>): List<String> {
 
     return list
 }
+
+/**
+ *      __  __
+ *     |  \/  |
+ *     | \  / | __ _ _ __
+ *     | |\/| |/ _` | '_ \
+ *     | |  | | (_| | |_) |
+ *     |_|  |_|\__,_| .__/
+ *                  | |
+ *                  |_|
+ */
 
 /**
  * Join keys and return a string
@@ -119,6 +163,16 @@ fun <K, V> Map<K, V>.joinKeys(stringSeperator: String = " "): String {
     return ret
 }
 
+/**
+ *      __  __       _        _     _      _      _     _
+ *     |  \/  |     | |      | |   | |    | |    (_)   | |
+ *     | \  / |_   _| |_ __ _| |__ | | ___| |     _ ___| |_
+ *     | |\/| | | | | __/ _` | '_ \| |/ _ \ |    | / __| __|
+ *     | |  | | |_| | || (_| | |_) | |  __/ |____| \__ \ |_
+ *     |_|  |_|\__,_|\__\__,_|_.__/|_|\___|______|_|___/\__|
+ *
+ *
+ */
 
 /**
  * Append strings in a list to this list

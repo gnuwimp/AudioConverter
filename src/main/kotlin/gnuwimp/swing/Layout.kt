@@ -38,7 +38,7 @@ class ManualLayout(val doLayout: (parent: Container) -> Unit) : LayoutManager {
 /**
  * Store widget and its grid size
  */
-data class Widget(val comp: Component, val x: Int, val y: Int, val w: Int, val h: Int)
+data class Widget(val comp: Component, var x: Int, var y: Int, var w: Int, var h: Int)
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -107,6 +107,23 @@ class Layout(val size: Int) : LayoutManager {
     fun add(component: Component, x: Int, y: Int, w: Int, h: Int) {
         widgets.add(Widget(component, x, y, w, h))
     }
+
+    /**
+     * Resize widget.
+     */
+    fun resize(component: Component, x: Int, y: Int, w: Int, h: Int) {
+        widgets.forEach {
+            if (it.comp == component) {
+                it.x = x
+                it.y = y
+                it.w = w
+                it.h = h
+                return
+            }
+        }
+
+        throw Exception("Widget does not exist in layout container!")
+    }
 }
 
 /**
@@ -130,5 +147,12 @@ open class LayoutPanel(size: Int = Swing.defFont.size) : JPanel() {
     fun add(widget: Component, x: Int, y: Int, w: Int, h: Int) {
         add(widget)
         layoutManager.add(widget, x, y, w, h)
+    }
+
+    /**
+     * Resize widget.
+     */
+    fun resize(widget: Component, x: Int, y: Int, w: Int, h: Int) {
+        layoutManager.resize(widget, x, y, w, h)
     }
 }

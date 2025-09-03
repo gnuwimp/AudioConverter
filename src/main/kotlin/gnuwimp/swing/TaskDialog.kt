@@ -15,11 +15,24 @@ import javax.swing.JLabel
 import javax.swing.JProgressBar
 import kotlin.concurrent.timer
 
+/***
+ *      _______        _    _____  _       _
+ *     |__   __|      | |  |  __ \(_)     | |
+ *        | | __ _ ___| | _| |  | |_  __ _| | ___   __ _
+ *        | |/ _` / __| |/ / |  | | |/ _` | |/ _ \ / _` |
+ *        | | (_| \__ \   <| |__| | | (_| | | (_) | (_| |
+ *        |_|\__,_|___/_|\_\_____/|_|\__,_|_|\___/ \__, |
+ *                                                  __/ |
+ *                                                 |___/
+ */
+
 /**
  * A dialog window that runs a TaskManager object.
  * Cancel button is disabled by default.
  */
-class TaskDialog(val taskManager: TaskManager, val type: Type, parent: JFrame? = null, title: String = "Working...", modal: Boolean = true, width: Int = Swing.defFont.size * 60, height: Int = Swing.defFont.size * 16) : BaseDialog(parent, title, modal) {
+class TaskDialog(val taskManager: TaskManager, val type: Type, parent: JFrame? = null, title: String = "Working...", modal: Boolean = true, width: Int = Swing.defFont.size * 60, height: Int = Swing.defFont.size * 16) :
+    BaseDialog(parent, title, modal) {
+
     enum class Type {
         MESSAGE_ONLY,  /** Show only messages */
         PERCENT,       /** Show messages and a prercent progress bar */
@@ -30,7 +43,7 @@ class TaskDialog(val taskManager: TaskManager, val type: Type, parent: JFrame? =
         TIME_ONLY,     /** Show only running time */
     }
 
-    private var cancel        = false
+    private var userAbort     = false
     private var cancelIsUsed  = false
     private var percent       = 0
     private var message       = ""
@@ -40,7 +53,7 @@ class TaskDialog(val taskManager: TaskManager, val type: Type, parent: JFrame? =
     private val messageLabel  = JLabel("")
 
     /**
-     * Enable or disable cancel button
+     * Enable or disable cancel button.
      */
     var enableCancel: Boolean
         get() = cancelButton.isEnabled
@@ -85,7 +98,7 @@ class TaskDialog(val taskManager: TaskManager, val type: Type, parent: JFrame? =
                 panel.add(cancelButton,  x = -21,  y = -5,  w = 20,  h =  4)
             }
             Type.PERCENT_ONLY -> {
-                height2 = Swing.defFont.size * 9
+                height2 = Swing.defFont.size * 11
                 width2 = Swing.defFont.size * 40
                 progressLabel.isVisible = false
                 messageLabel.isVisible = false
@@ -93,19 +106,19 @@ class TaskDialog(val taskManager: TaskManager, val type: Type, parent: JFrame? =
                 panel.add(cancelButton,  x = -21,  y = -5,  w = 20,  h =  4)
             }
             Type.TIME_ONLY -> {
-                height2 = Swing.defFont.size * 9
+                height2 = Swing.defFont.size * 11
                 width2 = Swing.defFont.size * 40
                 progressBar.isVisible = false
                 messageLabel.isVisible = false
-                panel.add(progressLabel, x =   1,  y =  1,  w = -1,  h = 5)
+                panel.add(progressLabel, x =   1,  y =  1,  w = -1,  h =  5)
                 panel.add(cancelButton,  x = -21,  y = -5,  w = 20,  h =  4)
             }
             Type.PROGRESS_ONLY -> {
-                height2 = Swing.defFont.size * 9
+                height2 = Swing.defFont.size * 11
                 width2 = Swing.defFont.size * 40
                 progressBar.isVisible = false
                 messageLabel.isVisible = false
-                panel.add(progressLabel, x =   1,  y =  1,  w = -1,  h = 5)
+                panel.add(progressLabel, x =   1,  y =  1,  w = -1,  h =  5)
                 panel.add(cancelButton,  x = -21,  y = -5,  w = 20,  h =  4)
             }
         }
@@ -117,21 +130,24 @@ class TaskDialog(val taskManager: TaskManager, val type: Type, parent: JFrame? =
 
         centerWindow()
 
-        //----------------------------------------------------------------------
+        /**
+         * User has pressed cancel, if that button is enabled.
+         */
         cancelButton.addActionListener {
-            cancel = true
+            userAbort = true
         }
     }
 
     /**
-     * Start timer that executes all task(s) and thread(s)
-     * Timer will also update dialog box info
+     * Start timer that executes all task(s) and thread(s).
+     * Timer will also update dialog box info.
+     * If cancel has been pressed it will be added to the log.
      */
     fun start(updateTime: Long = 100, messages: Int = 4) {
         val start = System.currentTimeMillis()
 
         timer(period = updateTime, action = {
-            if (taskManager.run(cancel) == true) {
+            if (taskManager.run(userAbort) == true) {
                 if (type != Type.TIME_ONLY && type != Type.PERCENT_ONLY) {
                     val buffer ="<html><pre>" + taskManager.message(messages) + "</pre><html/>"
 
@@ -153,6 +169,10 @@ class TaskDialog(val taskManager: TaskManager, val type: Type, parent: JFrame? =
                 }
             }
             else {
+                if (userAbort == true) {
+                    Swing.logMessage = "User has requested that work has to be canceled!"
+                }
+
                 cancel()
                 Thread.sleep(200)
                 hideAndDispose()

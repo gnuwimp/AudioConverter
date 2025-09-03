@@ -3,9 +3,8 @@
  * Released under the GNU General Public License v3.0
  */
 
-package gnuwimp.audioconverter.convert1
+package gnuwimp.audioconverter
 
-import gnuwimp.audioconverter.*
 import gnuwimp.swing.Swing
 import gnuwimp.util.FileInfo
 import gnuwimp.util.Task
@@ -15,51 +14,71 @@ import org.jaudiotagger.tag.FieldKey
 import java.io.InputStream
 import java.io.OutputStream
 
-//------------------------------------------------------------------------------
-class Task(private val inputFile: FileInfo, private val outputFile: FileInfo, private val encoder: Encoders) : Task(inputFile.size) {
-    //--------------------------------------------------------------------------
+/***
+ *       _____                          _ _______        _
+ *      / ____|                        | |__   __|      | |
+ *     | |     ___  _ ____   _____ _ __| |_ | | __ _ ___| | __
+ *     | |    / _ \| '_ \ \ / / _ \ '__| __|| |/ _` / __| |/ /
+ *     | |___| (_) | | | \ V /  __/ |  | |_ | | (_| \__ \   <
+ *      \_____\___/|_| |_|\_/ \___|_|   \__||_|\__,_|___/_|\_\
+ *
+ *
+ */
+
+/**
+ * Thread task for converting audio.
+ * Reading from one process and writing to another process.
+ */
+class ConvertTask(private val inputFile: FileInfo, private val outputFile: FileInfo, private val encoder: Encoders) :
+    Task(inputFile.size) {
+
+    /**
+     * Execute in a thread.
+     */
     override fun run() {
-        var decoderBuilder: ProcessBuilder?
-        var decoderProcess: Process?        = null
-        var decoderStream:  InputStream?    = null
-        var encoderBuilder: ProcessBuilder?
-        var encoderProcess: Process?        = null
-        var encoderStream:  OutputStream?   = null
-        var exception                       = ""
+        var decoderBuilder:   ProcessBuilder?
+        var decoderProcess:   Process?        = null
+        var decoderInpStream: InputStream?    = null
+        var encoderBuilder:   ProcessBuilder?
+        var encoderProcess:   Process?        = null
+        var encoderOutStream: OutputStream?   = null
+        var exception                         = ""
 
         try {
-            val decoderParams = Decoder.create(inputFile, false)
+            val decoderParams = Decoder.create(file = inputFile, downmix = false)
             val buffer        = ByteArray(size = 131_072)
 
-            decoderBuilder = ProcessBuilder(decoderParams)
-            decoderProcess = decoderBuilder.start()
-            decoderStream  = decoderProcess.inputStream
-            message        = inputFile.filename
+            decoderBuilder   = ProcessBuilder(decoderParams)
+            decoderProcess   = decoderBuilder.start()
+            decoderInpStream = decoderProcess.inputStream
+            message          = inputFile.filename
 
             Swing.logMessage = decoderParams.joinToString(separator = " ")
 
+
             while (decoderProcess.isAlive == true) {
-                val read = decoderStream.read(buffer)
+                val read = decoderInpStream.read(buffer)
 
                 if (read > 0) {
-                    if (encoderStream == null) {
+                    if (encoderOutStream == null) {
                         outputFile.remove()
 
                         val wavHeader     = WavHeader(buffer, read)
-                        val encoderParams = Encoders.Companion.createEncoder(encoder, wavHeader, outputFile.filename)
+                        val encoderParams = Encoders.createEncoder(encoder, wavHeader, outputFile.filename)
                         Swing.logMessage  = encoderParams.joinToString(separator = " ")
 
-                        encoderBuilder = ProcessBuilder(encoderParams)
-                        encoderProcess = encoderBuilder.start()
-                        encoderStream  = encoderProcess.outputStream
+                        encoderBuilder    = ProcessBuilder(encoderParams)
+                        encoderProcess    = encoderBuilder.start()
+                        encoderOutStream  = encoderProcess.outputStream
 
-                        encoderStream?.write(buffer, wavHeader.data, read - wavHeader.data)
+                        encoderOutStream?.buffered(131_072)
+                        encoderOutStream?.write(buffer, wavHeader.data, read - wavHeader.data)
                     }
                     else {
-                        encoderStream.write(buffer, 0, read)
+                        encoderOutStream.write(buffer, 0, read)
                     }
 
-                    ConvertManager.Companion.add(read.toLong())
+                    ConvertManager.add(read.toLong())
                 }
 
                 if (abort == true) {
@@ -67,11 +86,11 @@ class Task(private val inputFile: FileInfo, private val outputFile: FileInfo, pr
                 }
             }
 
-            decoderStream.safeClose()
+            decoderInpStream.safeClose()
             decoderProcess.waitFor()
 
-            decoderStream  = null
-            decoderProcess = null
+            decoderInpStream = null
+            decoderProcess   = null
         }
         catch (e: Exception) {
             exception = e.message.toString()
@@ -79,8 +98,8 @@ class Task(private val inputFile: FileInfo, private val outputFile: FileInfo, pr
         finally {
             progress += inputFile.size
 
-            decoderStream?.safeClose()
-            encoderStream?.safeClose()
+            decoderInpStream?.safeClose()
+            encoderOutStream?.safeClose()
 
             if (decoderProcess?.isAlive == true) {
                 decoderProcess.waitFor()
@@ -91,10 +110,10 @@ class Task(private val inputFile: FileInfo, private val outputFile: FileInfo, pr
             }
 
             if (encoderProcess != null && encoderProcess.exitValue() != 0) {
-                exception = "error: encoder failed, exit code=${encoderProcess.exitValue()} - $exception"
+                exception = "Error: encoder failed, exit code=${encoderProcess.exitValue()} - $exception"
             }
             else if (decoderProcess != null && decoderProcess.exitValue() != 0) {
-                exception = "error: decoder failed, exit code=${decoderProcess.exitValue()} - $exception"
+                exception = "Error: decoder failed, exit code=${decoderProcess.exitValue()} - $exception"
             }
 
             if (exception != "") {
@@ -128,7 +147,7 @@ class Task(private val inputFile: FileInfo, private val outputFile: FileInfo, pr
                     }
                 }
                 catch (e: Exception) {
-                    Swing.errorMessage = "error: for '${outputFile.name}' : failed to read or write tags : ${e.message.toString()}"
+                    Swing.errorMessage = "Error: for '${outputFile.name}' : failed to read or write tags : ${e.message.toString()}"
                 }
             }
         }

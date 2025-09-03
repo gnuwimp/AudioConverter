@@ -1,15 +1,28 @@
-package gnuwimp.audioconverter.merge1
+package gnuwimp.audioconverter
 
-import gnuwimp.audioconverter.*
 import gnuwimp.swing.Swing
 import gnuwimp.util.*
-import gnuwimp.util.Task
 import java.io.InputStream
 import java.io.OutputStream
 
-//------------------------------------------------------------------------------
-class Task(val parameters: Parameters) : Task(max = parameters.audioFiles.sumByLong(FileInfo::size)) {
-    //--------------------------------------------------------------------------
+/***
+ *      __  __                  _______        _
+ *     |  \/  |                |__   __|      | |
+ *     | \  / | ___ _ __ __ _  ___| | __ _ ___| | __
+ *     | |\/| |/ _ \ '__/ _` |/ _ \ |/ _` / __| |/ /
+ *     | |  | |  __/ | | (_| |  __/ | (_| \__ \   <
+ *     |_|  |_|\___|_|  \__, |\___|_|\__,_|___/_|\_\
+ *                       __/ |
+ *                      |___/
+ */
+
+/**
+ * Thread task for transcoding many tracks into one.
+ */
+class MergeTask(val mergeParams: MergeParams) : Task(max = mergeParams.audioFiles.sumByLong(FileInfo::size)) {
+    /**
+     *
+     */
     override fun run() {
         var decoderBuilder: ProcessBuilder?
         var decoderProcess: Process?        = null
@@ -23,11 +36,11 @@ class Task(val parameters: Parameters) : Task(max = parameters.audioFiles.sumByL
         try {
             var gap: ByteArray? = null
 
-            for (file in parameters.audioFiles) {
+            for (file in mergeParams.audioFiles) {
                 val buffer        = ByteArray(size = 131_072)
-                val decoderParams = Decoder.create(file, parameters.mono)
+                val decoderParams = Decoder.create(file, mergeParams.mono)
                 var parseHeader   = true
-                message           = "${file.filename}\n${parameters.outputFileName}"
+                message           = "${file.filename}\n${mergeParams.outputFileName}"
 
                 Swing.logMessage = decoderParams.joinToString(separator = " ")
 
@@ -39,19 +52,19 @@ class Task(val parameters: Parameters) : Task(max = parameters.audioFiles.sumByL
                     val read = decoderStream.read(buffer)
 
                     if (read > 0) {
-                        ConvertManager.Companion.add(read.toLong())
+                        ConvertManager.add(read.toLong())
 
                         if (encoderProcess == null) {
-                            parameters.outputFile.remove()
+                            mergeParams.outputFile.remove()
 
                             wavHeader         = WavHeader(buffer, read)
-                            val encoderParams = Encoders.Companion.createEncoder(parameters.encoder, wavHeader, parameters.outputFile.filename)
+                            val encoderParams = Encoders.createEncoder(mergeParams.encoder, wavHeader, mergeParams.outputFile.filename)
                             Swing.logMessage  = encoderParams.joinToString(separator = " ")
                             encoderBuilder    = ProcessBuilder(encoderParams)
                             encoderProcess    = encoderBuilder.start()
                             encoderStream     = encoderProcess.outputStream
                             parseHeader       = false
-                            val seconds       = parameters.gap.numOrZero.toInt()
+                            val seconds       = mergeParams.gap.numOrZero.toInt()
 
                             if (seconds != 0) {
                                 gap = ByteArray(size = (wavHeader.sampleRate * wavHeader.channels.ordinal * 2 * seconds))
@@ -63,7 +76,7 @@ class Task(val parameters: Parameters) : Task(max = parameters.audioFiles.sumByL
                             val currentHeader = WavHeader(buffer, read)
 
                             if (currentHeader.sampleRate != wavHeader.sampleRate || currentHeader.channels != wavHeader.channels || currentHeader.bitWidth != wavHeader.bitWidth) {
-                                throw Exception("error: channels or samplerate or bitwidth are different for these tracks\n${parameters.audioFiles[0].name} (${wavHeader.sampleRateString} Khz, ${wavHeader.channelString}, ${wavHeader.bitWidth} bit)\n${file.name} (${currentHeader.sampleRateString} Khz, ${currentHeader.channelString}, ${currentHeader.bitWidth} bit)")
+                                throw Exception("Error: channels or samplerate or bitwidth are different for these tracks\n${mergeParams.audioFiles[0].name} (${wavHeader.sampleRateString} Khz, ${wavHeader.channelString}, ${wavHeader.bitWidth} bit)\n${file.name} (${currentHeader.sampleRateString} Khz, ${currentHeader.channelString}, ${currentHeader.bitWidth} bit)")
                             }
 
                             encoderStream?.write(buffer, currentHeader.data, read - currentHeader.data)
@@ -79,7 +92,7 @@ class Task(val parameters: Parameters) : Task(max = parameters.audioFiles.sumByL
                     }
                 }
 
-                if (gap != null && file != parameters.audioFiles.last()) {
+                if (gap != null && file != mergeParams.audioFiles.last()) {
                     encoderStream?.write(gap, 0, gap.size)
                 }
 
@@ -112,10 +125,10 @@ class Task(val parameters: Parameters) : Task(max = parameters.audioFiles.sumByL
             }
 
             if (encoderProcess != null && encoderProcess.exitValue() != 0) {
-                exception = "error: encoder failed, exit code=${encoderProcess.exitValue()} - $exception"
+                exception = "Error: encoder failed, exit code=${encoderProcess.exitValue()} - $exception"
             }
             else if (decoderProcess != null && decoderProcess.exitValue() != 0) {
-                exception = "error: decoder failed, exit code=${decoderProcess.exitValue()} - $exception"
+                exception = "Error: decoder failed, exit code=${decoderProcess.exitValue()} - $exception"
             }
 
             if (exception != "") {

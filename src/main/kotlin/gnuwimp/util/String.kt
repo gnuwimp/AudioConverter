@@ -8,6 +8,210 @@ package gnuwimp.util
 import java.time.LocalDate
 import java.util.*
 
+/***
+ *       _____ _        _
+ *      / ____| |      (_)
+ *     | (___ | |_ _ __ _ _ __   __ _
+ *      \___ \| __| '__| | '_ \ / _` |
+ *      ____) | |_| |  | | | | | (_| |
+ *     |_____/ \__|_|  |_|_| |_|\__, |
+ *                               __/ |
+ *                              |___/
+ */
+
+/**
+ * Return string as a long or 0 if failed
+ */
+val String.numOrZero: Long
+    get() {
+        return try {
+            this.toLong()
+        }
+        catch (_: Exception) {
+            0
+        }
+    }
+
+/**
+ * Return string as a long or -1 if failed
+ */
+val String.numOrMinus: Long
+    get() {
+        return try {
+            this.toLong()
+        }
+        catch (_: Exception) {
+            -1
+        }
+    }
+
+/**
+ * Return a string without illegal file characters
+ */
+val String.removeIllegalFileChar: String
+    get() = this.replace(Regex("[\\\\/:*?\"<>|.]"), "")
+
+/**
+ * Remove all leading char that are not letters
+ */
+val String.removeLeadingNoneLetters: String
+    get() {
+        var value = ""
+        var eat   = false
+
+        this.forEach { c ->
+            if (c.isLetter() && !eat)
+                eat = true
+
+            if (eat)
+                value += c
+        }
+
+        return value
+    }
+
+/**
+ * Remove all trailing char that are not letters
+ */
+val String.removeTrailingNoneLetters: String
+    get() = reversed().removeLeadingNoneLetters.reversed()
+
+/**
+ *
+ */
+val String.toHtml: String
+    get() {
+        var res = if (this.indexOf("<html>") == -1 && this.indexOf("\n") >= 0) {
+            val res = this.replace("\n", "<br>")
+            "<html>$res</html>"
+        }
+        else {
+            this
+        }
+
+        if (res.indexOf("<html>") == -1) {
+            val regex = Regex("<+[a-zA-Z].*>")
+
+            if (regex.containsMatchIn(res) == true) {
+                res = "<html>$res</html>"
+            }
+        }
+
+        return res
+    }
+
+/**
+ * Return string as formatted iso date "YYYY-MM-DD" or empty string if date can't be converted or validated
+ * Current input formats is "YYYYMMDD", "YYYY-MM-DD", "MMDD", "MM-DD", "DD", ""
+ * If date is a partial date it tries to add current year and/or month
+ */
+val String.toIsoDate: String
+    get() {
+        return try {
+            when (length) {
+                0 -> {
+                    val ld = LocalDate.now()
+                    String.format("%04d-%02d-%02d", ld.year, ld.monthValue, ld.dayOfMonth)
+                }
+                2 -> {
+                    val ln = LocalDate.now()
+                    val ld = LocalDate.of(ln.year, ln.monthValue, substring(0, 2).toInt())
+                    String.format("%04d-%02d-%02d", ld.year, ld.monthValue, ld.dayOfMonth)
+                }
+                4 -> {
+                    val ln = LocalDate.now()
+                    val ld = LocalDate.of(ln.year, substring(0, 2).toInt(), substring(2, 4).toInt())
+                    String.format("%04d-%02d-%02d", ld.year, ld.monthValue, ld.dayOfMonth)
+                }
+                5 -> {
+                    val ln = LocalDate.now()
+                    val ld = LocalDate.of(ln.year, substring(0, 2).toInt(), substring(3, 5).toInt())
+                    String.format("%04d-%02d-%02d", ld.year, ld.monthValue, ld.dayOfMonth)
+                }
+                8 -> {
+                    val ld = LocalDate.of(substring(0, 4).toInt(), substring(4, 6).toInt(), substring(6, 8).toInt())
+                    String.format("%04d-%02d-%02d", ld.year, ld.monthValue, ld.dayOfMonth)
+                }
+                10 -> {
+                    val ld = LocalDate.of(substring(0, 4).toInt(), substring(5, 7).toInt(), substring(8, 10).toInt())
+                    String.format("%04d-%02d-%02d", ld.year, ld.monthValue, ld.dayOfMonth)
+                }
+                else -> ""
+            }
+        }
+        catch (_: Exception) {
+            return ""
+        }
+    }
+
+/**
+ * Return string as formatted iso time "hh:mm:ss" or empty string if time can't be converted
+ * Current input formats is "hhmmss", "hh:mm:ss", "mmss", "mm:ss", "mm", ""
+ */
+val String.toIsoTime: String
+    get() {
+        return try {
+            when (length) {
+                0 -> "00:00:00"
+
+                2 -> {
+                    val mm = toInt()
+                    if (mm in 0..59)
+                        String.format("00:%02d:00", mm) else ""
+                }
+
+                4 -> {
+                    val mm = substring(0, 2).toInt()
+                    val ss = substring(2, 4).toInt()
+                    if (mm in 0..59 && ss in 0..59)
+                        String.format("00:%02d:%02d", mm, ss)
+                    else
+                        ""
+                }
+
+                5 -> {
+                    val mm = substring(0, 2).toInt()
+                    val ss = substring(3, 5).toInt()
+                    if (mm in 0..59 && ss in 0..59)
+                        String.format("00:%02d:%02d", mm, ss)
+                    else
+                        ""
+                }
+
+                6 -> {
+                    val hh = substring(0, 2).toInt()
+                    val mm = substring(2, 4).toInt()
+                    val ss = substring(4, 6).toInt()
+                    if (hh in 0..23 && mm in 0..59 && ss in 0..59)
+                        String.format("%02d:%02d:%02d", hh, mm, ss)
+                    else
+                        ""
+                }
+
+                8 -> {
+                    val hh = substring(0, 2).toInt()
+                    val mm = substring(3, 5).toInt()
+                    val ss = substring(6, 8).toInt()
+                    if (hh in 0..23 && mm in 0..59 && ss in 0..59)
+                        String.format("%02d:%02d:%02d", hh, mm, ss)
+                    else
+                        ""
+                }
+
+                else -> ""
+            }
+        }
+        catch (_: Exception) {
+            ""
+        }
+    }
+
+/**
+ * Remove all space, tab, newline and return char from the beginning and the end of the string
+ */
+val String.trimWhiteSpace: String
+    get() = this.trim(' ', '\t', '\r', '\n')
+
 /**
  * Align string in center position with spaces to the left and right
  */
@@ -111,174 +315,16 @@ fun String.capWords(mode: String): String {
     return value
 }
 
-/**
- * Return string as a long or 0 if failed
+/***
+ *      _______ _                ______                         _
+ *     |__   __(_)              |  ____|                       | |
+ *        | |   _ _ __ ___   ___| |__ ___  _ __ _ __ ___   __ _| |_
+ *        | |  | | '_ ` _ \ / _ \  __/ _ \| '__| '_ ` _ \ / _` | __|
+ *        | |  | | | | | | |  __/ | | (_) | |  | | | | | | (_| | |_
+ *        |_|  |_|_| |_| |_|\___|_|  \___/|_|  |_| |_| |_|\__,_|\__|
+ *
+ *
  */
-val String.numOrZero: Long
-    get() {
-        return try {
-            this.toLong()
-        }
-        catch (e: Exception) {
-            0
-        }
-    }
-
-/**
- * Return string as a long or -1 if failed
- */
-val String.numOrMinus: Long
-    get() {
-        return try {
-            this.toLong()
-        }
-        catch (e: Exception) {
-            -1
-        }
-    }
-
-/**
- * Return a string without illegal file characters
- */
-val String.removeIllegalFileChar: String
-    get() = this.replace(Regex("[\\\\/:*?\"<>|.]"), "")
-
-/**
- * Remove all leading char that are not letters
- */
-val String.removeLeadingNoneLetters: String
-    get() {
-        var value = ""
-        var eat   = false
-
-        this.forEach { c ->
-            if (c.isLetter() && !eat)
-                eat = true
-
-            if (eat)
-                value += c
-        }
-
-        return value
-    }
-
-/**
- * Remove all trailing char that are not letters
- */
-val String.removeTrailingNoneLetters: String
-    get() = reversed().removeLeadingNoneLetters.reversed()
-
-/**
- * Return string as formatted iso date "YYYY-MM-DD" or empty string if date can't be converted or validated
- * Current input formats is "YYYYMMDD", "YYYY-MM-DD", "MMDD", "MM-DD", "DD", ""
- * If date is a partial date it tries to add current year and/or month
- */
-val String.toIsoDate: String
-    get() {
-        return try {
-            when (length) {
-                0 -> {
-                    val ld = LocalDate.now()
-                    String.format("%04d-%02d-%02d", ld.year, ld.monthValue, ld.dayOfMonth)
-                }
-                2 -> {
-                    val ln = LocalDate.now()
-                    val ld = LocalDate.of(ln.year, ln.monthValue, substring(0, 2).toInt())
-                    String.format("%04d-%02d-%02d", ld.year, ld.monthValue, ld.dayOfMonth)
-                }
-                4 -> {
-                    val ln = LocalDate.now()
-                    val ld = LocalDate.of(ln.year, substring(0, 2).toInt(), substring(2, 4).toInt())
-                    String.format("%04d-%02d-%02d", ld.year, ld.monthValue, ld.dayOfMonth)
-                }
-                5 -> {
-                    val ln = LocalDate.now()
-                    val ld = LocalDate.of(ln.year, substring(0, 2).toInt(), substring(3, 5).toInt())
-                    String.format("%04d-%02d-%02d", ld.year, ld.monthValue, ld.dayOfMonth)
-                }
-                8 -> {
-                    val ld = LocalDate.of(substring(0, 4).toInt(), substring(4, 6).toInt(), substring(6, 8).toInt())
-                    String.format("%04d-%02d-%02d", ld.year, ld.monthValue, ld.dayOfMonth)
-                }
-                10 -> {
-                    val ld = LocalDate.of(substring(0, 4).toInt(), substring(5, 7).toInt(), substring(8, 10).toInt())
-                    String.format("%04d-%02d-%02d", ld.year, ld.monthValue, ld.dayOfMonth)
-                }
-                else -> ""
-            }
-        }
-        catch (e: Exception) {
-            return ""
-        }
-    }
-
-/**
- * Return string as formatted iso time "hh:mm:ss" or empty string if time can't be converted
- * Current input formats is "hhmmss", "hh:mm:ss", "mmss", "mm:ss", "mm", ""
- */
-val String.toIsoTime: String
-    get() {
-        return try {
-            when (length) {
-                0 -> "00:00:00"
-
-                2 -> {
-                    val mm = toInt()
-                    if (mm in 0..59)
-                        String.format("00:%02d:00", mm) else ""
-                }
-
-                4 -> {
-                    val mm = substring(0, 2).toInt()
-                    val ss = substring(2, 4).toInt()
-                    if (mm in 0..59 && ss in 0..59)
-                        String.format("00:%02d:%02d", mm, ss)
-                    else
-                        ""
-                }
-
-                5 -> {
-                    val mm = substring(0, 2).toInt()
-                    val ss = substring(3, 5).toInt()
-                    if (mm in 0..59 && ss in 0..59)
-                        String.format("00:%02d:%02d", mm, ss)
-                    else
-                        ""
-                }
-
-                6 -> {
-                    val hh = substring(0, 2).toInt()
-                    val mm = substring(2, 4).toInt()
-                    val ss = substring(4, 6).toInt()
-                    if (hh in 0..23 && mm in 0..59 && ss in 0..59)
-                        String.format("%02d:%02d:%02d", hh, mm, ss)
-                    else
-                        ""
-                }
-
-                8 -> {
-                    val hh = substring(0, 2).toInt()
-                    val mm = substring(3, 5).toInt()
-                    val ss = substring(6, 8).toInt()
-                    if (hh in 0..23 && mm in 0..59 && ss in 0..59)
-                        String.format("%02d:%02d:%02d", hh, mm, ss)
-                    else
-                        ""
-                }
-
-                else -> ""
-            }
-        }
-        catch (e: Exception) {
-            ""
-        }
-    }
-
-/**
- * Remove all space, tab, newline and return char from the beginning and the end of the string
- */
-val String.trimWhiteSpace: String
-    get() = this.trim(' ', '\t', '\r', '\n')
 
 /**
  * Time formats for strings
@@ -294,6 +340,7 @@ enum class TimeFormat {
     MINSEC,                 /** "MMSS" */
     LONG_MINSEC,            /** "MM:SS" */
     LONG_MINSEC_AND_MILLI,  /** "MM:SS.mmm" */
+    LONG_TIME_ALL_HOURS,    /** "HH??:MM:SS" */
 }
 
 /**
@@ -305,8 +352,11 @@ fun TimeFormat.format(milliSeconds: Long, timeZone: String = ""): String {
 
     cal.time = date
 
-    if (timeZone.isNotEmpty())
+    if (timeZone.isNotEmpty()) {
         cal.timeZone = TimeZone.getTimeZone(timeZone)
+    }
+
+    val hours = if (this == TimeFormat.LONG_TIME_ALL_HOURS) milliSeconds / (3600 * 1000) else 0
 
     return when (this) {
         TimeFormat.ISO -> String.format("%04d%02d%02d %02d%02d%02d", cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND))
@@ -319,6 +369,7 @@ fun TimeFormat.format(milliSeconds: Long, timeZone: String = ""): String {
         TimeFormat.MINSEC -> String.format("%02d%02d", cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND))
         TimeFormat.LONG_MINSEC -> String.format("%02d:%02d", cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND))
         TimeFormat.LONG_MINSEC_AND_MILLI -> String.format("%02d:%02d.%03d", cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND), cal.get(Calendar.MILLISECOND))
+        TimeFormat.LONG_TIME_ALL_HOURS -> String.format("%02d:%02d:%02d", hours, cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND))
     }
 }
 
